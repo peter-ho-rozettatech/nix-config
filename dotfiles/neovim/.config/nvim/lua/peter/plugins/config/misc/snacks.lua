@@ -133,6 +133,13 @@ return {
                         },
                         { icon = " ", key = "q", desc = "Quit", action = ":qa" },
                     },
+                    header = [[
+██████╗  ██████╗ ███████╗███████╗████████╗████████╗ █████╗
+██╔══██╗██╔═══██╗╚══███╔╝██╔════╝╚══██╔══╝╚══██╔══╝██╔══██╗
+██████╔╝██║   ██║  ███╔╝ █████╗     ██║      ██║   ███████║
+██╔══██╗██║   ██║ ███╔╝  ██╔══╝     ██║      ██║   ██╔══██║
+██║  ██║╚██████╔╝███████╗███████╗   ██║      ██║   ██║  ██║
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝]],
                 },
                 sections = {
                     -- left
@@ -140,7 +147,7 @@ return {
                     { section = "keys", gap = 1, padding = 1 },
                     { icon = " ", title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
                     { section = "startup" },
-                    -- right
+                    -- middle
                     -- {
                     --     pane = 2,
                     --     section = "terminal",
@@ -211,6 +218,45 @@ return {
                             }, cmd)
                         end, cmds)
                     end,
+                    -- right
+                    {
+                        pane = 3,
+                        icon = " ",
+                        title = "Jira Tickets",
+                        section = "terminal",
+                        cmd = [[jira sprint list --current -a$(jira me) --plain --no-truncate --columns KEY,STATUS,SUMMARY | head -10 | awk -F'\t+' '{print "\033[33m" $1 "\033[0m [\033[36m" $2 "\033[0m]"; print $3}']],
+                        key = "J",
+                        action = function()
+                            local config = vim.fn.expand("~/.config/.jira/.config.yml")
+                            local server = vim.fn.system("yq -r '.server' " .. config):gsub("%s+$", "")
+                            local project = vim.fn.system("yq -r '.project.key' " .. config):gsub("%s+$", "")
+                            local board_id = vim.fn.system("yq -r '.board.id' " .. config):gsub("%s+$", "")
+                            vim.ui.open(server .. "/jira/software/c/projects/" .. project .. "/boards/" .. board_id)
+                        end,
+                        height = 20,
+                        padding = 1,
+                        ttl = 5 * 60,
+                        indent = 3,
+                    },
+                    {
+                        pane = 3,
+                        icon = " ",
+                        title = "Jira Sprints",
+                        section = "terminal",
+                        cmd = [[jira sprint list --table --plain --no-truncate --columns NAME,STATE,START,END | head -6 | awk -F'\t+' 'NR==1 {printf "%-15s %-10s %-12s %-12s\n", $1, $2, $3, $4; next} {printf "\033[33m%-15s\033[0m \033[36m%-10s\033[0m %-12s %-12s\n", $1, $2, substr($3,1,10), substr($4,1,10)}']],
+                        key = "S",
+                        action = function()
+                            local config = vim.fn.expand("~/.config/.jira/.config.yml")
+                            local server = vim.fn.system("yq -r '.server' " .. config):gsub("%s+$", "")
+                            local project = vim.fn.system("yq -r '.project.key' " .. config):gsub("%s+$", "")
+                            local board_id = vim.fn.system("yq -r '.board.id' " .. config):gsub("%s+$", "")
+                            vim.ui.open(server .. "/jira/software/c/projects/" .. project .. "/boards/" .. board_id .. "/backlog")
+                        end,
+                        height = 10,
+                        padding = 1,
+                        ttl = 5 * 60,
+                        indent = 3,
+                    },
                 },
             },
             indent = {

@@ -1,5 +1,6 @@
 {
   "includeCoAuthoredBy": false,
+  "model": "opus[1m]",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -45,5 +46,6 @@
   "editorMode": "vim",
   "permissions": {
     "defaultMode": "bypassPermissions"
-  }
+  },
+  "remoteControlAtStartup": false
 }
