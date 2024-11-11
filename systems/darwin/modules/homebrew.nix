@@ -43,18 +43,8 @@ in
         "keka"
         "keyboardcleantool"
         "meetingbar"
-        "nextcloud"
         "orbstack"
-        "vlc"
         "wezterm"
-        # "airbuddy"
-        # "bartender"
-        # "betterdisplay"
-        # "cursorsense"
-        # "istat-menus"
-        # "rectangle"
-        # "steermouse"
-        # "swish"
       ]
       ++ (
         if pkgs.stdenv.isAarch64 then
