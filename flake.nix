@@ -142,6 +142,12 @@
             modules = [ ./systems/darwin/MBP14-M1.nix ];
           }
         );
+        RTA043 = nix-darwin.lib.darwinSystem (
+          getSystemConfiguration "aarch64-darwin"
+          // {
+            modules = [ ./systems/darwin/RTA043.nix ];
+          }
+        );
       };
 
       homeConfigurations = {
