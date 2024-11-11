@@ -7,6 +7,7 @@
   networking.hostName = "RTA043";
 
   homebrew.casks = [
+    "jordanbaird-ice"
     "slack"
   ];
 }
