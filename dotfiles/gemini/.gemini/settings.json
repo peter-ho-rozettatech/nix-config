@@ -1,0 +1,24 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "ui": {
+    "theme": "Default"
+  },
+  "mcpServers": {
+    "context7": {
+      "command": "context7-mcp",
+      "args": []
+    },
+    "fetch": {
+      "command": "mcp-server-fetch",
+      "args": []
+    },
+    "sequential-thinking": {
+      "command": "mcp-server-sequential-thinking",
+      "args": []
+    }
+  }
+}
