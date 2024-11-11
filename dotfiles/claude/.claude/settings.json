@@ -42,5 +42,8 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "effortLevel": "xhigh",
+  "model": "opus[1m]",
+  "remoteControlAtStartup": false
 }
