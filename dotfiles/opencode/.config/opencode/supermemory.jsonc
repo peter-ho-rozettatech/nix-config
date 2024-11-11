@@ -1,0 +1,34 @@
+{
+  // API key (can also use SUPERMEMORY_API_KEY env var)
+  // "apiKey": "sm_...",
+
+  // Min similarity for memory retrieval (0-1)
+  "similarityThreshold": 0.6,
+
+  // Max memories injected per request
+  "maxMemories": 5,
+
+  // Max project memories listed
+  "maxProjectMemories": 10,
+
+  // Max profile facts injected
+  "maxProfileItems": 5,
+
+  // Include user profile in context
+  "injectProfile": true,
+
+  // Prefix for container tags (used when userContainerTag/projectContainerTag not set)
+  // "containerTagPrefix": "opencode",
+
+  // Optional: Set exact user container tag (overrides auto-generated tag)
+  "userContainerTag": "peter-ho",
+
+  // Optional: Set exact project container tag (overrides auto-generated tag)
+  "projectContainerTag": "dthx",
+
+  // Extra keyword patterns for memory detection (regex)
+  // "keywordPatterns": ["log\\s+this", "write\\s+down"],
+
+  // Context usage ratio that triggers compaction (0-1)
+  "compactionThreshold": 0.80
+}
