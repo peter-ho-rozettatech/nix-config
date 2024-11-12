@@ -51,6 +51,17 @@ M.setup = function()
                 )
             end, {}),
         }),
+        s(
+            "dthx",
+            fmt(
+                [[
+           DTHX-{1}: {3}
+
+           Refs: https://rozetta.atlassian.net/browse/DTHX-{2}
+           ]],
+                { i(1, "1234"), rep(1), i(2, "commit message") }
+            )
+        ),
     })
     ls.filetype_extend("NeogitCommitMessage", { "gitcommit" })
 
