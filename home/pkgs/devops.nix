@@ -1,9 +1,9 @@
 { pkgs, ... }:
 {
   home.packages = with pkgs; [
-    # NOTE: add these to direnv/devenv instead
-    # opentofu
-    # terraform
+    awscli2
+    terraform
+    terragrunt
     terraform-docs
     terraform-compliance
   ];
