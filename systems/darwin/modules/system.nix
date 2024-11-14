@@ -39,6 +39,7 @@
           "/Applications/Google Chrome.app"
           "/Applications/Floorp.app"
           "/Applications/WezTerm.app"
+          "/Applications/Figma.app"
         ];
         persistent-others = [
           "${config.homePath}/Downloads"
