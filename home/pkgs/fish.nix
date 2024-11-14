@@ -128,6 +128,7 @@
         ta = "tmux attach-session -t";
         task = "./Taskfile";
         tf = "terraform";
+        tg = "terragrunt";
         tk = "tmux kill-session -t";
         tl = "tmux list-sessions";
         tn = "tmux new-session -s";
