@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 {
   imports = [
     ./darwin.nix
@@ -10,10 +15,26 @@
         config.home.homeDirectory + "/Library/Mobile Documents/com~apple~CloudDocs"
       );
       ".config/git/.gitconfig".source = config.lib.meta.mkDotfilesSymlink "git/.config/git/.gitconfig";
+      ".aws/amazonq/mcp.json".source = config.lib.meta.mkDotfilesSymlink "aws/.aws/amazonq/mcp.json";
     };
     sessionVariables = {
       COPILOT_MODEL = "gpt-4.1";
       SCRATCH_PATH = "~/iCloud/Documents";
+    };
+    packages = with pkgs; [
+      amazon-q-cli
+      awscli2
+      terraform
+      # terragrunt
+    ];
+  };
+  programs.fish.shellAbbrs = {
+    q = "amazon-q";
+  };
+  programs.opencode.settings = {
+    mcp = {
+      atlassian.enabled = lib.mkForce true;
+      terraform.enabled = lib.mkForce true;
     };
   };
 }
