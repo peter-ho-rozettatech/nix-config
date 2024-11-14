@@ -1,4 +1,8 @@
-{ config, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ./darwin.nix
@@ -15,5 +19,11 @@
       COPILOT_MODEL = "gemini-2.5-pro";
       SCRATCH_PATH = "~/iCloud/Documents";
     };
+    packages = with pkgs; [
+      awscli2
+      ngrok
+      terraform
+      # terragrunt
+    ];
   };
 }
