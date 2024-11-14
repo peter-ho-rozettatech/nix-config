@@ -1,4 +1,8 @@
-{ config, ... }:
+{
+  pkgs,
+  config,
+  ...
+}:
 {
   imports = [
     ./darwin.nix
@@ -10,4 +14,11 @@
     );
     ".config/git/.gitconfig".source = config.lib.meta.mkDotfilesSymlink "git/.config/git/.gitconfig";
   };
+
+  home.packages = with pkgs; [
+    awscli2
+    ngrok
+    terraform
+    terragrunt
+  ];
 }
