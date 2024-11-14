@@ -1,4 +1,8 @@
-{ config, ... }:
+{
+  pkgs,
+  config,
+  ...
+}:
 {
   imports = [
     ./darwin.nix
@@ -14,5 +18,11 @@
     sessionVariables = {
       SCRATCH_PATH = "~/iCloud/Documents";
     };
+    packages = with pkgs; [
+      awscli2
+      ngrok
+      terraform
+      terragrunt
+    ];
   };
 }
