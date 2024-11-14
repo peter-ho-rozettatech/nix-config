@@ -13,6 +13,7 @@
   homebrew.casks = [
     "figma"
     "jordanbaird-ice"
+    "pgadmin4"
     "slack"
   ];
 
