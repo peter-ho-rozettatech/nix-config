@@ -134,7 +134,7 @@ return {
                 markdown = with_prettier_formatter({}, { "injected" }),
                 nix = { "alejandra", "nixfmt", "injected" },
                 python = function(bufnr)
-                    local formatters = { "autoflake", "docformatter", "ssort", "reorder-python-imports" }
+                    local formatters = { "autoflake", "ssort", "reorder-python-imports" }
                     if conform.get_formatter_info("ruff_format", bufnr).available then
                         vim.list_extend(formatters, { "ruff_fix", "ruff_organize_imports", "ruff_format" })
                     else
