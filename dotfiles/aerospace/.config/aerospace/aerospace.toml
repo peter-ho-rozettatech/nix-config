@@ -96,7 +96,7 @@ alt-z = 'fullscreen'
 
 alt-enter = 'exec-and-forget open -n -a WezTerm'
 alt-shift-e = 'exec-and-forget open -n finder'
-alt-t = 'exec-and-forget open -n -a "Floorp"'
+alt-t = 'exec-and-forget open -n -a "Google Chrome"'
 alt-q = "close --quit-if-last-window"
 alt-shift-q = "close-all-windows-but-current"
 
