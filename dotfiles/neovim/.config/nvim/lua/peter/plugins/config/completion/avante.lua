@@ -20,7 +20,7 @@ return {
         provider = "copilot",
         auto_suggestion_provider = "claude",
         copilot = {
-            model = "claude-3.5-sonnet",
+            model = "claude-3.7-sonnet",
         },
         behaviour = {
             auto_suggestions = false,
