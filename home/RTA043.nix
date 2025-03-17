@@ -22,7 +22,7 @@
       awscli2
       ngrok
       terraform
-      terragrunt
+      # terragrunt
     ];
   };
 }
