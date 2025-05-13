@@ -20,7 +20,7 @@
     nodePackages.svgo
     prettierd
     pybetter
-    python3Packages.docformatter
+    # python3Packages.docformatter
     python3Packages.reorder-python-imports
     shfmt
     sort-package-json
