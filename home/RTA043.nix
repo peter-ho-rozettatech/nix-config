@@ -23,7 +23,7 @@
       SCRATCH_PATH = "~/iCloud/Documents";
     };
     packages = with pkgs; [
-      awscli2
+      unstable.awscli2
       jiratui
       terraform
       # terragrunt
