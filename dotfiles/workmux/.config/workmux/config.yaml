@@ -1,6 +1,6 @@
 # worktree_dir: .worktrees/
 nerdfont: true
-agent: opencode
+agent: claude
 merge_strategy: rebase
 panes:
   - command: <agent>
