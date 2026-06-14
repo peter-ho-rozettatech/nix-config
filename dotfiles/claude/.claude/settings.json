@@ -1,5 +1,9 @@
 {
   "includeCoAuthoredBy": false,
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "opus[1m]",
   "hooks": {
     "Notification": [
       {
@@ -109,11 +113,10 @@
   "enabledPlugins": {
     "context-mode@context-mode": true
   },
-  "permissions": {
-    "defaultMode": "bypassPermissions"
-  },
+  "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "remoteControlAtStartup": false
 }
