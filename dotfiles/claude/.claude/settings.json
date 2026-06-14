@@ -115,5 +115,10 @@
   "theme": "dark-ansi",
   "editorMode": "vim",
   "teammateMode": "auto",
-  "remoteControlAtStartup": false
+  "remoteControlAtStartup": false,
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
+    }
+  }
 }
