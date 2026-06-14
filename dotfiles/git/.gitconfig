@@ -99,3 +99,5 @@
 
 [tag]
     sort = version:refname
+[http]
+	sslCAInfo = /Library/Application Support/AikidoSecurity/EndpointProtection/run/endpoint-protection-openssl-combined-ca.pem
