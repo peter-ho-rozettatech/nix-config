@@ -1,13 +1,20 @@
 {
   lib,
   stdenv,
+  cacert,
   fetchFromGitHub,
   fetchPnpmDeps,
   pnpm_10,
   pnpmConfigHook,
   nodejs,
   makeWrapper,
+  runCommand,
 }:
+let
+  pnpmCaBundle = runCommand "react-doctor-pnpm-ca-bundle" { } ''
+    cat ${cacert}/etc/ssl/certs/ca-bundle.crt ${../../certs/aikido-l4-mitm-ca.localhost.pem} > $out
+  '';
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "react-doctor";
   version = "2.2.2-unstable-2026-06-30";
@@ -31,6 +38,10 @@ stdenv.mkDerivation (finalAttrs: {
     pnpm = pnpm_10;
     fetcherVersion = 3;
     hash = "sha256-XtRhlkukE6zOatsNw7i5nBcspDzv81R1TCx85NJZi0I=";
+    NODE_EXTRA_CA_CERTS = "${pnpmCaBundle}";
+    npm_config_cafile = "${pnpmCaBundle}";
+    pnpm_config_cafile = "${pnpmCaBundle}";
+    SSL_CERT_FILE = "${pnpmCaBundle}";
   };
 
   buildPhase = ''

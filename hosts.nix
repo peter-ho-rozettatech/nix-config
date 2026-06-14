@@ -65,6 +65,18 @@
     ];
   };
 
+  RTA043 = {
+    platform = "darwin";
+    system = "aarch64-darwin";
+    systemModule = ./systems/darwin/RTA043.nix;
+    homeModule = ./home/RTA043.nix;
+    user = "peterho";
+    roles = [
+      "darwin"
+      "laptop"
+    ];
+  };
+
   droid = {
     platform = "home-manager";
     system = "aarch64-linux";

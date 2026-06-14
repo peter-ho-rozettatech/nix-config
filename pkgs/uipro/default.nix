@@ -1,12 +1,19 @@
 {
   lib,
   stdenvNoCC,
+  cacert,
   fetchFromGitHub,
   bun,
   nodejs,
   writableTmpDirAsHomeHook,
   makeWrapper,
+  runCommand,
 }:
+let
+  bunCaBundle = runCommand "uipro-cli-bun-ca-bundle" { } ''
+    cat ${cacert}/etc/ssl/certs/ca-bundle.crt ${../../certs/aikido-l4-mitm-ca.localhost.pem} > $out
+  '';
+in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "uipro-cli";
   version = "2.10.0-unstable-2026-06-29";
@@ -42,6 +49,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       export BUN_INSTALL_CACHE_DIR=$(mktemp -d)
       bun install \
           --cpu="*" \
+          --cafile="${bunCaBundle}" \
           --frozen-lockfile \
           --ignore-scripts \
           --no-cache \

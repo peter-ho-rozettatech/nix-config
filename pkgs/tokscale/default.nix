@@ -2,9 +2,16 @@
   lib,
   rustPlatform,
   fetchFromGitHub,
+  cacert,
   perl,
+  runCommand,
 }:
 
+let
+  vendorCaBundle = runCommand "tokscale-vendor-ca-bundle" { } ''
+    cat ${cacert}/etc/ssl/certs/ca-bundle.crt ${../../certs/aikido-l4-mitm-ca.localhost.pem} > $out
+  '';
+in
 rustPlatform.buildRustPackage {
   pname = "tokscale";
   version = "4.0.5-unstable-2026-06-29";
@@ -17,6 +24,12 @@ rustPlatform.buildRustPackage {
   };
 
   cargoHash = "sha256-Ql4kss8E5/gCRzgQUOOsEOUL5xXH+Kj7Tti9AEq+isk=";
+
+  depsExtraArgs = {
+    CURL_CA_BUNDLE = "${vendorCaBundle}";
+    REQUESTS_CA_BUNDLE = "${vendorCaBundle}";
+    SSL_CERT_FILE = "${vendorCaBundle}";
+  };
 
   nativeBuildInputs = [ perl ];
 

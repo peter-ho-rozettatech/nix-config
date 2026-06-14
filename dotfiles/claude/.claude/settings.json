@@ -104,5 +104,7 @@
     "padding": 0
   },
   "theme": "dark-ansi",
-  "tui": "fullscreen"
+  "tui": "fullscreen",
+  "model": "opus[1m]",
+  "remoteControlAtStartup": false
 }
