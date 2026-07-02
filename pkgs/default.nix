@@ -21,6 +21,7 @@ with pkgs;
   playwriter = callPackage ./playwriter { };
   plannotator = callPackage ./plannotator { };
   pybetter = callPackage ./pybetter { inherit pkgs; };
+  python-validity = callPackage ./python-validity { };
   react-doctor = callPackage ./react-doctor { };
   sort-package-json = callPackage ./sort-package-json { };
   superpowers = callPackage ./superpowers { };
