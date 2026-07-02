@@ -51,8 +51,8 @@ in
 
   security.pam.services = {
     greetd.fprintAuth = true;
-    sudo.fprintAuth = true;
+    sudo.fprintAuth = false;
     hyprlock.fprintAuth = true;
-    "polkit-1".fprintAuth = true;
+    "polkit-1".fprintAuth = false;
   };
 }
