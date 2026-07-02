@@ -125,6 +125,58 @@ keymap("n", "<leader>iG", [["+gP]], { desc = "gPut+" })
 keymap("n", "<leader>iy", "<CMD>%y+<CR>", { desc = "Yank File" })
 keymap("n", "<leader>ip", 'ggVG"+p', { desc = "Put File" })
 
+-- AI prompt scratch files
+local ai_prompt_root = "/tmp/ai-prompt"
+
+local function ensure_ai_prompt_root()
+    vim.fn.mkdir(ai_prompt_root, "p")
+end
+
+local function ai_prompt_today_dir()
+    return ai_prompt_root .. "/" .. os.date("%Y-%m-%d")
+end
+
+local function open_ai_prompt_split(path)
+    vim.cmd("split " .. vim.fn.fnameescape(path))
+end
+
+local function new_ai_prompt_path(dir)
+    return dir .. "/" .. ("%s-%08x.md"):format(os.date("%H%M%S"), vim.fn.rand())
+end
+
+keymap("n", "<leader>an", function()
+    local dir = ai_prompt_today_dir()
+    vim.fn.mkdir(dir, "p")
+
+    local path = new_ai_prompt_path(dir)
+    if vim.fn.writefile({}, path) ~= 0 then
+        vim.notify("Failed to create " .. path, vim.log.levels.ERROR)
+        return
+    end
+
+    vim.g.ai_prompt_last_file = path
+    open_ai_prompt_split(path)
+end, { desc = "AI Prompt New" })
+
+keymap("n", "<leader>aN", function()
+    if not vim.g.ai_prompt_last_file then
+        vim.notify("No AI prompt scratch file in this session", vim.log.levels.WARN)
+        return
+    end
+
+    open_ai_prompt_split(vim.g.ai_prompt_last_file)
+end, { desc = "AI Prompt Previous" })
+
+keymap("n", "<leader>af", function()
+    ensure_ai_prompt_root()
+    require("snacks").picker.files({ cwd = ai_prompt_root, confirm = "edit_split" })
+end, { desc = "AI Prompt Files" })
+
+keymap("n", "<leader>ag", function()
+    ensure_ai_prompt_root()
+    require("snacks").picker.grep({ cwd = ai_prompt_root, confirm = "edit_split" })
+end, { desc = "AI Prompt Grep" })
+
 -- Copy @-prefixed paths (for AI / sharing)
 keymap("n", "<leader>ap", function()
     local paths = {}
@@ -192,7 +244,10 @@ keymap("n", "<leader>as", function()
 
     if not target then
         vim.fn.setreg("+", content)
-        vim.notify("No tmux pane found running " .. table.concat(processes, "/") .. ", copied buffer to clipboard", vim.log.levels.WARN)
+        vim.notify(
+            "No tmux pane found running " .. table.concat(processes, "/") .. ", copied buffer to clipboard",
+            vim.log.levels.WARN
+        )
         return
     end
 
