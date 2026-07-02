@@ -86,8 +86,10 @@ When the user provides `TASKS.md`:
    open questions, and non-goals.
 3. Execute all unblocked pending tasks in suggested order unless the user names a
    narrower subset.
-4. Mark a checkbox complete only after its acceptance checks and relevant
-   validation pass.
+4. After each task's acceptance checks and relevant validation pass, immediately
+   edit `TASKS.md` on disk to mark that one checkbox complete, before starting
+   the next task. Update checkboxes incrementally as you go; never batch all
+   checkbox edits until the end of the run.
 5. Preserve completed checkboxes and user-authored context.
 
 ## TDD Decision Rule
