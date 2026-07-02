@@ -1,10 +1,9 @@
 { pkgs, ... }:
 {
   # Usage after switching this host:
-  # 1. Confirm the reader is the expected 06cb:00bd device.
-  # 2. Enroll once with `fprintd-enroll peter`.
-  # 3. Verify with `fprintd-list peter` and `fprintd-verify peter`.
-  # 4. Test sudo with `sudo -k` followed by `sudo -v`.
+  # 1. Enroll once with `fprintd-enroll peter`.
+  # 2. Verify with `fprintd-list peter` and `fprintd-verify peter`.
+  # 3. Test sudo with `sudo -k` followed by `sudo -v`.
   #    `sudo -k` drops cached auth; `sudo -v` forces a fresh auth check.
   environment.systemPackages = with pkgs; [
     fprintd
