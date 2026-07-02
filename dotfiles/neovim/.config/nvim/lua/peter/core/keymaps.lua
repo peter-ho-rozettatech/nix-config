@@ -183,7 +183,7 @@ keymap("n", "<leader>ap", function()
     for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
         if vim.bo[bufnr].buflisted and vim.api.nvim_buf_is_loaded(bufnr) then
             local name = vim.api.nvim_buf_get_name(bufnr)
-            if name ~= "" then
+            if name ~= "" and not vim.startswith(name, ai_prompt_root .. "/") then
                 local rel = vim.fn.fnamemodify(name, ":.")
                 table.insert(paths, "@" .. rel)
             end
