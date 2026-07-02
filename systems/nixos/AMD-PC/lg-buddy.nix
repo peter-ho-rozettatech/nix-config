@@ -38,7 +38,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.lg-buddy}/bin/lg-buddy startup boot";
+      ExecStart = "${pkgs.lg-buddy}/bin/lg-buddy startup auto";
       ExecStop = "${pkgs.lg-buddy}/bin/lg-buddy shutdown";
     };
   };
