@@ -157,6 +157,101 @@ keymap("x", "<leader>av", function()
     vim.notify("Copied: " .. result)
 end, { desc = "@buffer#L1:2" })
 
+-- Send current buffer text to an agent pane in the current tmux session.
+keymap("n", "<leader>as", function()
+    local processes = { "claude", "opencode" }
+    local content = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+
+    if content == "" then
+        vim.notify("Current buffer is empty", vim.log.levels.WARN)
+        return
+    end
+
+    local panes = vim.fn.system({ "tmux", "list-panes", "-s", "-F", "#{pane_id} #{pane_current_command}" })
+    if vim.v.shell_error ~= 0 then
+        vim.fn.setreg("+", content)
+        vim.notify("No tmux session, copied buffer to clipboard", vim.log.levels.WARN)
+        return
+    end
+
+    local target
+    for line in panes:gmatch("[^\n]+") do
+        local pane_id, command = line:match("^(%S+)%s*(.*)$")
+        if pane_id and command then
+            for _, process in ipairs(processes) do
+                if command:find(process, 1, true) then
+                    target = pane_id
+                    break
+                end
+            end
+        end
+        if target then
+            break
+        end
+    end
+
+    if not target then
+        vim.fn.setreg("+", content)
+        vim.notify("No tmux pane found running " .. table.concat(processes, "/") .. ", copied buffer to clipboard", vim.log.levels.WARN)
+        return
+    end
+
+    local temp_file = vim.fn.tempname()
+    local file = io.open(temp_file, "wb")
+    if not file then
+        vim.fn.setreg("+", content)
+        vim.notify("Failed to create temp file, copied buffer to clipboard", vim.log.levels.ERROR)
+        return
+    end
+
+    file:write(content)
+    file:close()
+
+    local buffer_name = "nvim-agent-send-" .. vim.fn.getpid()
+    vim.fn.system({ "tmux", "load-buffer", "-b", buffer_name, temp_file })
+    vim.fn.delete(temp_file)
+    if vim.v.shell_error ~= 0 then
+        vim.fn.setreg("+", content)
+        vim.notify("Failed to load tmux buffer, copied buffer to clipboard", vim.log.levels.ERROR)
+        return
+    end
+
+    vim.fn.system({ "tmux", "paste-buffer", "-b", buffer_name, "-p", "-t", target })
+    local paste_failed = vim.v.shell_error ~= 0
+    vim.fn.system({ "tmux", "delete-buffer", "-b", buffer_name })
+
+    if paste_failed then
+        vim.fn.setreg("+", content)
+        vim.notify("Failed to send buffer to " .. target .. ", copied buffer to clipboard", vim.log.levels.ERROR)
+        return
+    end
+
+    local window_id
+    local window_info = vim.fn.system({ "tmux", "list-panes", "-s", "-F", "#{pane_id} #{window_id}" })
+    if vim.v.shell_error == 0 then
+        for line in window_info:gmatch("[^\n]+") do
+            local pane_id, pane_window_id = line:match("^(%S+)%s+(%S+)$")
+            if pane_id == target then
+                window_id = pane_window_id
+                break
+            end
+        end
+    end
+
+    local switch_failed = false
+    if window_id then
+        vim.fn.system({ "tmux", "select-window", "-t", window_id })
+        switch_failed = vim.v.shell_error ~= 0
+    end
+
+    vim.fn.system({ "tmux", "select-pane", "-t", target })
+    switch_failed = switch_failed or vim.v.shell_error ~= 0
+
+    if switch_failed then
+        vim.notify("Sent buffer to " .. target .. " but failed to switch pane", vim.log.levels.WARN)
+    end
+end, { desc = "Send Buffer to Agent" })
+
 -- Diagnostics
 keymap("n", "<leader>cx", function()
     vim.diagnostic.setqflist()
