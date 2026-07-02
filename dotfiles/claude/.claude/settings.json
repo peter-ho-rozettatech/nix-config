@@ -5,87 +5,85 @@
   "hooks": {
     "Notification": [
       {
+        "matcher": "permission_prompt|elicitation_dialog",
         "hooks": [
           {
-            "command": "workmux set-window-status waiting",
-            "type": "command"
+            "type": "command",
+            "command": "workmux set-window-status waiting"
           }
-        ],
-        "matcher": "permission_prompt|elicitation_dialog"
+        ]
       }
     ],
     "PermissionRequest": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "bash \"$HOME/.claude/hooks/PermissionRequest\"",
-            "type": "command"
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/PermissionRequest\""
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "PostToolUse": [
       {
         "hooks": [
           {
-            "command": "workmux set-window-status working",
-            "type": "command"
+            "type": "command",
+            "command": "workmux set-window-status working"
           }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "_tag": "ccstatusline-managed",
+        "matcher": "Skill",
         "hooks": [
           {
             "type": "command",
             "command": "ccstatusline --hook"
           }
-        ],
-        "matcher": "Skill"
+        ]
       }
     ],
     "Stop": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "bash \"$HOME/.claude/hooks/Stop\"",
-            "type": "command"
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/Stop\""
           }
-        ],
-        "matcher": ""
+        ]
       },
       {
         "hooks": [
           {
-            "command": "workmux set-window-status done",
-            "type": "command"
+            "type": "command",
+            "command": "workmux set-window-status done"
           }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "bash \"$HOME/.claude/hooks/UserPromptSubmit\"",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      },
-      {
-        "hooks": [
-          {
-            "command": "workmux set-window-status working",
-            "type": "command"
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/UserPromptSubmit\""
           }
         ]
       },
       {
-        "_tag": "ccstatusline-managed",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "workmux set-window-status working"
+          }
+        ]
+      },
+      {
         "hooks": [
           {
             "type": "command",
@@ -101,9 +99,9 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
+    "type": "command",
     "command": "ccstatusline",
-    "padding": 0,
-    "type": "command"
+    "padding": 0
   },
   "theme": "dark-ansi",
   "tui": "fullscreen"
