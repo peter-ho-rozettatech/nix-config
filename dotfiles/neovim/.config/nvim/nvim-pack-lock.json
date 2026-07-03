@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "74e810fa76adac18413463dfc0babbca6281564e",
+      "rev": "ffa2eb82ee43194c733589c9e602355f1e6d0865",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -134,7 +134,7 @@
       "src": "https://github.com/chentoast/marks.nvim"
     },
     "mini.nvim": {
-      "rev": "dc8a9918c3b1bc18a5fcd04d39b6d658074c0886",
+      "rev": "c5cdbadeb423ff724e27a42ab2d1c504d1d6fc5a",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "namu.nvim": {
