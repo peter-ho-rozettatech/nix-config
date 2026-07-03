@@ -126,7 +126,9 @@ keymap("n", "<leader>iy", "<CMD>%y+<CR>", { desc = "Yank File" })
 keymap("n", "<leader>ip", 'ggVG"+p', { desc = "Put File" })
 
 -- AI prompt scratch files
-local ai_prompt_root = "/tmp/ai-prompt"
+-- Resolve /tmp so the root matches nvim's symlink-resolved buffer names
+-- (on macOS /tmp -> /private/tmp), keeping the exclusion check below working.
+local ai_prompt_root = vim.fn.resolve("/tmp") .. "/ai-prompt"
 
 local function ensure_ai_prompt_root()
     vim.fn.mkdir(ai_prompt_root, "p")
