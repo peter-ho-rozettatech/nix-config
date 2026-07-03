@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+die() {
+    printf 'superpowers-push: %s\n' "$*" >&2
+    exit 1
+}
+
+running_worktree_names() {
+    workmux list --json \
+        | jq -r '.[] | select(.is_main != true and .is_open == true) | .handle'
+}
+
+pick_plan_file() {
+    local running_names
+    local plan_file
+    local worktree_name
+
+    running_names="$(running_worktree_names)"
+
+    fd --type f --hidden --follow --glob '*.md' docs/superpowers/plans \
+        | while IFS= read -r plan_file; do
+            plan_file="${plan_file#./}"
+            worktree_name="${plan_file##*/}"
+            worktree_name="${worktree_name%.md}"
+
+            if ! grep -Fxq -- "$worktree_name" <<< "$running_names"; then
+                printf '%s\n' "$plan_file"
+            fi
+        done \
+        | fzf \
+            --prompt 'plan> ' \
+            --header 'Select a superpowers plan file' \
+            --preview 'bat --color=always --style=numbers --line-range=:200 -- {}' \
+            --preview-window 'right:60%'
+}
+
+[ -d docs/superpowers/plans ] || die "no docs/superpowers/plans directory found in current directory"
+
+if ! plan_file="$(pick_plan_file)"; then
+    exit 0
+fi
+
+[ -n "$plan_file" ] || exit 0
+
+worktree_name="${plan_file##*/}"
+worktree_name="${worktree_name%.md}"
+
+[ -n "$worktree_name" ] || die "could not derive a worktree name from: $plan_file"
+
+workmux add --prompt "/executing-plans @${plan_file}" "$worktree_name"
