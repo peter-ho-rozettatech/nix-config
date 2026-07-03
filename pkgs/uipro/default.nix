@@ -14,8 +14,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "nextlevelbuilder";
     repo = "ui-ux-pro-max-skill";
-    rev = "d7e37dd3598de748a4ec789efc42cff0409a9ac0";
-    hash = "sha256-S5fc63ko/jBmWskTRTM8i2ducmCPJHj1/2xFHAGKSXE=";
+    rev = "9ceab49a1c6e9bf23fa9ebc49ca7d4f0c6303a99";
+    hash = "sha256-pobSQAiQsWUzEl6uK2Aa1aLY4SVyjco9ODw48kWWzwo=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/cli";

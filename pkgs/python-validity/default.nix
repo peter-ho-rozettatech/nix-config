@@ -10,7 +10,7 @@
 
 python3Packages.buildPythonPackage rec {
   pname = "python-validity";
-  version = "0.15";
+  version = "0.15-unstable-2025-06-10";
   format = "setuptools";
 
   src = fetchFromGitHub {

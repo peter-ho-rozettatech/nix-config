@@ -6,13 +6,13 @@
 }:
 stdenvNoCC.mkDerivation {
   pname = "betterfox";
-  version = "150.0-unstable-2026-05-31";
+  version = "152.0-unstable-2026-07-02";
 
   src = fetchFromGitHub {
     owner = "yokoffing";
     repo = "Betterfox";
-    rev = "c97bc0639609f35ff9d65522e3ddb03dac69e938";
-    hash = "sha256-1eC6DowuP9PzaLxh1t2FKzUeJFw/ppimXIiwyJsRKwc=";
+    rev = "8e415d1633f10fe0192d9c938e4ca2628eeec9f9";
+    hash = "sha256-nLkaxpbAMifWxx/RJvuaDpjndzKFPTvAO8o9gR47HtU=";
   };
 
   installPhase = ''
