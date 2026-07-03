@@ -293,7 +293,7 @@ in
     impeccable.enable = true;
     plannotator.enable = false;
     playwriter.enable = false;
-    superpowers.enable = false;
+    superpowers.enable = true;
     taste-skill = {
       enable = true;
       skills = [
