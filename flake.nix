@@ -89,7 +89,6 @@
         host
         // {
           name = host.name or outputName;
-          roles = host.roles or [ ];
           homePath = defaultHomePath host;
         };
 
