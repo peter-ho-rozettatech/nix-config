@@ -50,8 +50,33 @@ worktree_candidates() {
         '
 }
 
+preview_worktree() {
+    local worktree_name="$1"
+    local branch="$2"
+    local worktree_path="$3"
+    local state="$4"
+    local base_head="${WORKMUX_PULL_PREVIEW_BASE_HEAD:?}"
+
+    printf 'worktree: %s\nbranch: %s\npath: %s\nstate: %s\n\n' \
+        "$worktree_name" "$branch" "$worktree_path" "$state"
+    git -C "$worktree_path" status --short --branch
+
+    printf '\nCommitted diff:\n'
+    git -C "$worktree_path" diff --stat --color=always "$base_head" HEAD -- .
+    git -C "$worktree_path" diff --color=always "$base_head" HEAD -- .
+
+    printf '\nUncommitted diff:\n'
+    git -C "$worktree_path" diff --stat --color=always HEAD -- .
+    git -C "$worktree_path" diff --color=always HEAD -- .
+}
+
 pick_worktree() {
     local current_root="$1"
+    local WORKMUX_PULL_PREVIEW_BASE_HEAD
+
+    WORKMUX_PULL_PREVIEW_BASE_HEAD="$(git -C "$current_root" rev-parse HEAD)"
+    export WORKMUX_PULL_PREVIEW_BASE_HEAD
+    export -f preview_worktree
 
     worktree_candidates "$current_root" \
         | fzf \
@@ -59,7 +84,7 @@ pick_worktree() {
             --with-nth=1,2,4,3 \
             --prompt 'Worktree> ' \
             --header 'Select a workmux worktree to stage and merge' \
-            --preview 'printf "worktree: {1}\nbranch: {2}\npath: {3}\nstate: {4}\n\n"; git -C {3} status --short --branch; printf "\nUncommitted diff:\n"; git -C {3} diff --stat --color=always HEAD; git -C {3} diff --color=always HEAD -- .' \
+            --preview 'bash -c '\''preview_worktree "$@"'\'' _ {1} {2} {3} {4}' \
             --preview-window 'right:60%'
 }
 
