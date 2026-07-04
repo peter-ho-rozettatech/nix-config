@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "ffa2eb82ee43194c733589c9e602355f1e6d0865",
+      "rev": "704f4c1af2a951903709f891fed65a8e90d69d30",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
