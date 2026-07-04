@@ -214,6 +214,9 @@ end, { desc = "@buffer#L1:2" })
 -- Send current buffer text to an agent pane in the current tmux session.
 keymap("n", "<leader>as", function()
     local processes = { "claude", "opencode" }
+    local bufnr = vim.api.nvim_get_current_buf()
+    local buffer_path = vim.api.nvim_buf_get_name(bufnr)
+    local is_ai_prompt_buffer = buffer_path ~= "" and vim.startswith(vim.fn.resolve(buffer_path), ai_prompt_root .. "/")
     local content = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 
     if content == "" then
@@ -281,6 +284,17 @@ keymap("n", "<leader>as", function()
         vim.fn.setreg("+", content)
         vim.notify("Failed to send buffer to " .. target .. ", copied buffer to clipboard", vim.log.levels.ERROR)
         return
+    end
+
+    if is_ai_prompt_buffer then
+        local saved = pcall(vim.cmd.write)
+        if not saved then
+            vim.notify("Sent buffer to " .. target .. " but failed to save prompt file", vim.log.levels.WARN)
+        elseif vim.fn.winnr("$") > 1 then
+            vim.cmd.close()
+        else
+            vim.cmd.bdelete()
+        end
     end
 
     local window_id
