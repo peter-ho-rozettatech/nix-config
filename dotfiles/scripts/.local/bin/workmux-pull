@@ -63,11 +63,11 @@ pick_worktree() {
             --preview-window 'right:60%'
 }
 
-archive_tasks_folder() {
+archive_artifacts_tasks_folder() {
     local worktree_path="$1"
     local worktree_name="$2"
     local source_dir="${worktree_path}/.artifacts/${worktree_name}"
-    local archive_root="${worktree_path}/.artifacts/archive"
+    local archive_root="${worktree_path}/.artifacts/archives"
     local archive_dir="${archive_root}/${worktree_name}"
 
     if [ ! -f "${source_dir}/TASKS.md" ]; then
@@ -80,6 +80,39 @@ archive_tasks_folder() {
 
     mkdir -p "$archive_root"
     mv "$source_dir" "$archive_dir"
+}
+
+archive_superpowers_docs() {
+    local worktree_path="$1"
+    local worktree_name="$2"
+    local sp_dir="${worktree_path}/docs/superpowers"
+    local plan_source="${sp_dir}/plans/${worktree_name}.md"
+    local archive_dir="${worktree_path}/docs/superpowers/archives/${worktree_name}"
+
+    local spec_source="${sp_dir}/specs/${worktree_name}-design.md"
+    if [ ! -f "$spec_source" ]; then
+        spec_source="${sp_dir}/specs/${worktree_name}.md"
+    fi
+
+    if [ ! -f "$plan_source" ] && [ ! -f "$spec_source" ]; then
+        return 0
+    fi
+
+    mkdir -p "$archive_dir"
+    if [ -f "$plan_source" ]; then
+        mv -f "$plan_source" "${archive_dir}/PLAN.md"
+    fi
+    if [ -f "$spec_source" ]; then
+        mv -f "$spec_source" "${archive_dir}/SPEC.md"
+    fi
+}
+
+archive_worktree_planning_files() {
+    local worktree_path="$1"
+    local worktree_name="$2"
+
+    archive_artifacts_tasks_folder "$worktree_path" "$worktree_name"
+    archive_superpowers_docs "$worktree_path" "$worktree_name"
 }
 
 stage_worktree_changes() {
@@ -103,4 +136,4 @@ IFS=$'\t' read -r worktree_name _branch worktree_path _state <<< "$selected_work
 
 stage_worktree_changes "$worktree_path"
 workmux merge "$worktree_name"
-archive_tasks_folder "$current_root" "$worktree_name"
+archive_worktree_planning_files "$current_root" "$worktree_name"

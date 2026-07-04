@@ -12,44 +12,109 @@ running_worktree_names() {
         | jq -r '.[] | select(.is_main != true and .is_open == true) | .handle'
 }
 
-pick_tasks_file() {
-    local running_names
+is_running_worktree() {
+    local running_names="$1"
+    local worktree_name="$2"
+
+    grep -Fxq -- "$worktree_name" <<< "$running_names"
+}
+
+print_artifact_candidates() {
+    local running_names="$1"
     local tasks_file
     local plan_dir
     local worktree_name
 
-    running_names="$(running_worktree_names)"
+    [ -d .artifacts ] || return 0
 
-    fd --type f --hidden --follow --glob TASKS.md --exclude archive .artifacts \
+    fd --type f --hidden --follow --glob TASKS.md --exclude archive --exclude archives .artifacts \
         | while IFS= read -r tasks_file; do
             tasks_file="${tasks_file#./}"
             plan_dir="${tasks_file%/*}"
             worktree_name="${plan_dir##*/}"
 
-            if ! grep -Fxq -- "$worktree_name" <<< "$running_names"; then
-                printf '%s\n' "$tasks_file"
+            if [ "$plan_dir" = ".artifacts" ] || [ -z "$worktree_name" ]; then
+                continue
             fi
-        done \
+
+            if ! is_running_worktree "$running_names" "$worktree_name"; then
+                printf 'artifacts\t%s\t%s\n' "$tasks_file" "$worktree_name"
+            fi
+        done
+}
+
+print_superpowers_candidates() {
+    local running_names="$1"
+    local plan_file
+    local worktree_name
+
+    [ -d docs/superpowers/plans ] || return 0
+
+    fd --type f --hidden --follow --glob '*.md' docs/superpowers/plans \
+        | while IFS= read -r plan_file; do
+            plan_file="${plan_file#./}"
+            worktree_name="${plan_file##*/}"
+            worktree_name="${worktree_name%.md}"
+
+            if [ -z "$worktree_name" ]; then
+                continue
+            fi
+
+            if ! is_running_worktree "$running_names" "$worktree_name"; then
+                printf 'superpowers\t%s\t%s\n' "$plan_file" "$worktree_name"
+            fi
+        done
+}
+
+ensure_supported_roots() {
+    if [ ! -d .artifacts ] && [ ! -d docs/superpowers/plans ]; then
+        die "no supported planning directories found; expected .artifacts or docs/superpowers/plans"
+    fi
+}
+
+pick_work_item() {
+    local running_names
+
+    running_names="$(running_worktree_names)"
+
+    {
+        print_artifact_candidates "$running_names"
+        print_superpowers_candidates "$running_names"
+    } \
         | fzf \
-            --prompt 'TASKS.md> ' \
-            --header 'Select a .artifacts task file' \
-            --preview 'bat --color=always --style=numbers --line-range=:200 -- {}' \
+            --delimiter=$'\t' \
+            --with-nth=1,2,3 \
+            --prompt 'work item> ' \
+            --header 'Select a work item (variant, file, worktree)' \
+            --preview 'printf "variant: {1}\nfile: {2}\nworktree: {3}\n\n"; bat --color=always --style=numbers --line-range=:200 -- {2}' \
             --preview-window 'right:60%'
 }
 
-[ -d .artifacts ] || die "no .artifacts directory found in current directory"
+ensure_supported_roots
 
-if ! tasks_file="$(pick_tasks_file)"; then
+if ! selected_item="$(pick_work_item)"; then
     exit 0
 fi
 
-[ -n "$tasks_file" ] || exit 0
+[ -n "$selected_item" ] || exit 0
 
-plan_dir="${tasks_file%/*}"
-worktree_name="${plan_dir##*/}"
+IFS=$'\t' read -r variant work_item_file worktree_name <<< "$selected_item"
 
-if [ "$plan_dir" = ".artifacts" ] || [ -z "$worktree_name" ]; then
-    die "TASKS.md must be inside a change subdirectory under .artifacts"
-fi
+[ -n "$work_item_file" ] || die "selected work item has no file"
+[ -n "$worktree_name" ] || die "selected work item has no worktree name"
 
-workmux add --prompt "/implement @${tasks_file}" "$worktree_name"
+case "$variant" in
+    artifacts)
+        plan_dir="${work_item_file%/*}"
+        if [ "$plan_dir" = ".artifacts" ]; then
+            die "TASKS.md must be inside a change subdirectory under .artifacts"
+        fi
+        workmux add --prompt "/implement @${work_item_file}" "$worktree_name"
+        ;;
+    superpowers)
+        workmux add --prompt "/executing-plans @${work_item_file}" "$worktree_name"
+        ;;
+    *)
+        die "unknown work item variant: $variant"
+        ;;
+esac

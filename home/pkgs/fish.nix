@@ -152,8 +152,6 @@
       sc = "sesh-connect-fzf";
       sl = "sesh list";
       sv = "source .venv/bin/activate.fish";
-      spl = "superpowers-pull";
-      sps = "superpowers-push";
       t = "tmux";
       ta = "tmux attach-session -t";
       task = "./Taskfile";
