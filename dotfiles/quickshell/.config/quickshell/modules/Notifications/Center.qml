@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../Common"
 
-OverlayPanel {
+OverlayHost {
     id: root
 
     required property var centerModel

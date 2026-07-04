@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import "../../Common"
 
-OverlayPanel {
+OverlayHost {
     id: bluetoothPopup
 
     property var module

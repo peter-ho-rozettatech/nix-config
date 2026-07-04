@@ -1,7 +1,7 @@
 import QtQuick
 import "../../Common"
 
-OverlayPanel {
+OverlayHost {
     id: calendarPopup
 
     property var module

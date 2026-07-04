@@ -3,7 +3,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import "../../Common"
 
-OverlayPanel {
+OverlayHost {
     id: trayPopup
 
     property var module

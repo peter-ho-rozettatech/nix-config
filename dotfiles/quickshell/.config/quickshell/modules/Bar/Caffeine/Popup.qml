@@ -1,7 +1,7 @@
 import QtQuick
 import "../../Common"
 
-OverlayPanel {
+OverlayHost {
     id: caffeinePicker
 
     property var module

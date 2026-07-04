@@ -1,7 +1,7 @@
 import QtQuick
 import "../../Common"
 
-OverlayPanel {
+OverlayHost {
     id: batteryPopup
 
     property var module

@@ -10,7 +10,7 @@ import "../Common"
 // secondary (weekly/monthly) UsageMeter, each with its own reset countdown, plus
 // any free Codex reset credits; cost rows (OpenRouter) render a credits-used
 // meter + balance/total/used; error rows show a clean message. Footer = Refresh.
-OverlayPanel {
+OverlayHost {
     id: root
 
     required property var usageModel

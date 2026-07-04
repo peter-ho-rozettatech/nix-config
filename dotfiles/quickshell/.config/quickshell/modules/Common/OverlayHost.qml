@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-// OverlayPanel — shared full-screen overlay shell used by the stats, codexbar,
+// OverlayHost — shared full-screen overlay shell used by the stats, codexbar,
 // and notification panels. Provides the behavior those three need identically:
 //   - transparent full-screen surface above the bar and apps (Overlay layer)
 //   - exclusive keyboard focus while open, so Esc/keys are delivered immediately
