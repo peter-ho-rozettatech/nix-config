@@ -19,6 +19,9 @@ BaseModule {
     property bool enabled: available && adapter.enabled
     property bool showPopup: false
     property real globalX: 0
+    property var barWindow: null
+    property bool inOverflow: false
+    property var overflowAnchorModule: null
     property QtObject popupsConfig: parent.popupsConfig
     property string icon: !available ? "󰂲" : !enabled ? "󰂲" : connectedDevices.length > 0 ? "󰂱" : "󰂯"
 
@@ -56,6 +59,25 @@ BaseModule {
         if (!available)
             return "No adapter";
         return (adapter.name || adapter.adapterId || "Bluetooth") + (enabled ? " on" : " off");
+    }
+
+    function popupX(popupWidth) {
+        if (!root.barWindow)
+            return 0;
+        var anchor = root.inOverflow && root.overflowAnchorModule ? root.overflowAnchorModule : root;
+        return Math.max(8, Math.min(anchor.globalX + (anchor.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+    }
+
+    function closePopup() {
+        root.showPopup = false;
+    }
+
+    BluetoothPopup {
+        module: root
+        barWindow: root.barWindow
+        colors: root.colors
+        fontsConfig: root.fontsConfig
+        popupsConfig: root.popupsConfig
     }
 
     onXChanged: updatePosition()

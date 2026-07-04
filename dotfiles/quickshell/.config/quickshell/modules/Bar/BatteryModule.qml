@@ -14,8 +14,12 @@ BaseModule {
     property string batteryText: "󰁺 --%"
     property bool showPopup: false
     property real globalX: 0
+    property var barWindow: null
+    property bool inOverflow: false
+    property var overflowAnchorModule: null
     property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject thresholdsConfig: parent.thresholdsConfig
+    property QtObject popupsConfig: parent.popupsConfig
 
     hoverHighlight: true
 
@@ -343,6 +347,25 @@ BaseModule {
     function updatePosition() {
         var pos = root.mapToItem(null, 0, 0);
         root.globalX = pos.x;
+    }
+
+    function popupX(popupWidth) {
+        if (!root.barWindow)
+            return 0;
+        var anchor = root.inOverflow && root.overflowAnchorModule ? root.overflowAnchorModule : root;
+        return Math.max(8, Math.min(anchor.globalX + (anchor.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+    }
+
+    function closePopup() {
+        root.showPopup = false;
+    }
+
+    BatteryPopup {
+        module: root
+        barWindow: root.barWindow
+        colors: root.colors
+        fontsConfig: root.fontsConfig
+        popupsConfig: root.popupsConfig
     }
 
     onClicked: {

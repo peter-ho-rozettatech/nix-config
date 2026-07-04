@@ -7,6 +7,7 @@ BaseModule {
     hoverHighlight: true
     property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject popupsConfig: parent.popupsConfig
+    property var barWindow: null
 
     // Calendar popup state
     property bool showPopup: false
@@ -82,6 +83,24 @@ BaseModule {
     function updatePosition() {
         var pos = root.mapToItem(null, 0, 0);
         root.globalX = pos.x;
+    }
+
+    function popupX(popupWidth) {
+        if (!root.barWindow)
+            return 0;
+        return Math.max(8, Math.min(root.globalX + (root.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+    }
+
+    function closePopup() {
+        root.showPopup = false;
+    }
+
+    CalendarPopup {
+        module: root
+        barWindow: root.barWindow
+        colors: root.colors
+        fontsConfig: root.fontsConfig
+        popupsConfig: root.popupsConfig
     }
 
     function goPrevMonth() {

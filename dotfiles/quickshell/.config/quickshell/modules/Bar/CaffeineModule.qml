@@ -11,6 +11,10 @@ BaseModule {
     property int remainingSeconds: 0
     property bool showPicker: false
     property real globalX: 0
+    property var barWindow: null
+    property bool inOverflow: false
+    property var overflowAnchorModule: null
+    property QtObject popupsConfig: parent.popupsConfig
 
     text: {
         if (!active)
@@ -52,6 +56,24 @@ BaseModule {
     function updatePosition() {
         var pos = root.mapToItem(null, 0, 0);
         root.globalX = pos.x;
+    }
+
+    function popupAnchorX(popupWidth) {
+        if (root.inOverflow && root.overflowAnchorModule)
+            return root.overflowAnchorModule.globalX + (root.overflowAnchorModule.width - popupWidth) / 2;
+        return root.globalX + (root.width - popupWidth) / 2;
+    }
+
+    function closePopup() {
+        root.showPicker = false;
+    }
+
+    CaffeinePickerPopup {
+        module: root
+        barWindow: root.barWindow
+        colors: root.colors
+        fontsConfig: root.fontsConfig
+        popupsConfig: root.popupsConfig
     }
 
     onXChanged: updatePosition()
