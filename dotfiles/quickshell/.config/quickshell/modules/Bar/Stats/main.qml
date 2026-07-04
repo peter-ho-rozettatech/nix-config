@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
+import ".."
+import "." as Local
 
 BaseModule {
     id: root
@@ -40,7 +42,7 @@ BaseModule {
     property var gpuApps: []
 
     property bool showPopup: false
-    property real globalX: 0
+    readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property bool inOverflow: false
     property var overflowAnchorModule: null
@@ -78,7 +80,7 @@ BaseModule {
         updateMemoryUsage();
         findTempPath();
         updateGpu();
-        updatePosition();
+        popupAnchor.updatePosition();
     }
 
     Process {
@@ -228,27 +230,32 @@ BaseModule {
     }
 
     onClicked: {
-        root.updatePosition();
+        popupAnchor.updatePosition();
         root.showPopup = !root.showPopup;
     }
 
     function popupX(popupWidth) {
-        if (!root.barWindow)
-            return 0;
-        var anchor = root.inOverflow && root.overflowAnchorModule ? root.overflowAnchorModule : root;
-        return Math.max(8, Math.min(anchor.globalX + (anchor.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+        return popupAnchor.popupX(popupWidth);
     }
 
     function closePopup() {
         root.showPopup = false;
     }
 
-    StatsPopup {
+    Local.Popup {
         module: root
         barWindow: root.barWindow
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+    }
+
+    PopupAnchor {
+        id: popupAnchor
+        module: root
+        barWindow: root.barWindow
+        inOverflow: root.inOverflow
+        overflowAnchorModule: root.overflowAnchorModule
     }
 
     function parseCpuStats(output) {
@@ -672,13 +679,8 @@ BaseModule {
         return mb >= 1024 ? (mb / 1024).toFixed(1) + "G" : Math.round(mb) + "M";
     }
 
-    function updatePosition() {
-        var pos = root.mapToItem(null, 0, 0);
-        root.globalX = pos.x;
-    }
-
-    onXChanged: updatePosition()
-    onWidthChanged: updatePosition()
+    onXChanged: popupAnchor.updatePosition()
+    onWidthChanged: popupAnchor.updatePosition()
 
     function findTempPath() {
         var pattern = cpuTempDrivers.join("|");

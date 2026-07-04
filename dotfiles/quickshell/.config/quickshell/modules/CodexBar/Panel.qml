@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../Common"
 
-// CodexBarPanel — full-screen overlay (mirrors NotificationCenter.qml) listing
+// Panel — full-screen overlay (mirrors Center.qml) listing
 // every normalized usage row. Quota rows (Codex/z.ai) render a primary (5h) and
 // secondary (weekly/monthly) UsageMeter, each with its own reset countdown, plus
 // any free Codex reset credits; cost rows (OpenRouter) render a credits-used
@@ -31,7 +31,7 @@ OverlayPanel {
     required property int topMargin
     readonly property int bottomMargin: 12
     // A ListView has no intrinsic height, so size it explicitly (mirrors
-    // NotificationCenter.qml) — Layout.fillHeight alone yields 0 and hides rows.
+    // Center.qml) — Layout.fillHeight alone yields 0 and hides rows.
     readonly property int maxPanelHeight: Math.max(160, Screen.height - root.topMargin - root.bottomMargin)
     readonly property int maxListHeight: Math.max(120, root.maxPanelHeight - 104)
     readonly property real listHeight: usageModel.count > 0 ? Math.min(listView.contentHeight, root.maxListHeight) : 0

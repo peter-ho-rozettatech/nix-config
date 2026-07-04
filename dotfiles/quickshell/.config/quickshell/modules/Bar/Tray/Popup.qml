@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
-import "../Common"
+import "../../Common"
 
 OverlayPanel {
     id: trayPopup

@@ -2,13 +2,15 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
+import ".."
+import "." as Local
 
 BaseModule {
     id: root
 
     hoverHighlight: true
     property bool expanded: false
-    property real globalX: 0
+    readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property QtObject popupsConfig: parent.popupsConfig
     property var hiddenIds: []
@@ -17,22 +19,15 @@ BaseModule {
 
     text: expanded ? "󰅃" : "󰅀"
 
-    function updatePosition() {
-        var pos = root.mapToItem(null, 0, 0);
-        root.globalX = pos.x;
-    }
-
     function popupX(popupWidth) {
-        if (!root.barWindow)
-            return 0;
-        return Math.max(8, Math.min(root.globalX + (root.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+        return popupAnchor.popupX(popupWidth);
     }
 
     function closePopup() {
         root.expanded = false;
     }
 
-    TrayPopup {
+    Local.Popup {
         module: root
         barWindow: root.barWindow
         colors: root.colors
@@ -43,13 +38,19 @@ BaseModule {
         overflowNames: root.overflowNames
     }
 
-    onXChanged: updatePosition()
-    onWidthChanged: updatePosition()
-    onBarWindowChanged: updatePosition()
-    Component.onCompleted: updatePosition()
+    PopupAnchor {
+        id: popupAnchor
+        module: root
+        barWindow: root.barWindow
+    }
+
+    onXChanged: popupAnchor.updatePosition()
+    onWidthChanged: popupAnchor.updatePosition()
+    onBarWindowChanged: popupAnchor.updatePosition()
+    Component.onCompleted: popupAnchor.updatePosition()
 
     onClicked: {
-        updatePosition();
+        popupAnchor.updatePosition();
         expanded = !expanded;
     }
 }

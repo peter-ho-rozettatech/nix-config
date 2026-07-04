@@ -60,7 +60,7 @@ PanelWindow {
             width: resolvedToastWidth
             height: card.implicitHeight
 
-            NotificationCard {
+            Card {
                 id: card
                 anchors.fill: parent
                 entry: modelData

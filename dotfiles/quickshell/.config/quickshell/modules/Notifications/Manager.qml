@@ -210,7 +210,7 @@ Item {
         }
     }
 
-    NotificationToasts {
+    Toasts {
         toastModel: root.visibleToasts
         colors: root.colors
         fontsConfig: root.fontsConfig
@@ -226,7 +226,7 @@ Item {
         }
     }
 
-    NotificationCenter {
+    Center {
         open: root.centerVisible
         centerModel: root.persistentNotifications
         colors: root.colors

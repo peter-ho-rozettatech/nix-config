@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
+import ".."
+import "." as Local
 
 BaseModule {
     id: root
@@ -13,7 +15,7 @@ BaseModule {
     property bool hasCritical: false
     property string batteryText: "󰁺 --%"
     property bool showPopup: false
-    property real globalX: 0
+    readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property bool inOverflow: false
     property var overflowAnchorModule: null
@@ -32,7 +34,7 @@ BaseModule {
 
     Component.onCompleted: {
         updateBattery();
-        updatePosition();
+        popupAnchor.updatePosition();
     }
 
     Process {
@@ -344,23 +346,15 @@ BaseModule {
         return icon;
     }
 
-    function updatePosition() {
-        var pos = root.mapToItem(null, 0, 0);
-        root.globalX = pos.x;
-    }
-
     function popupX(popupWidth) {
-        if (!root.barWindow)
-            return 0;
-        var anchor = root.inOverflow && root.overflowAnchorModule ? root.overflowAnchorModule : root;
-        return Math.max(8, Math.min(anchor.globalX + (anchor.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+        return popupAnchor.popupX(popupWidth);
     }
 
     function closePopup() {
         root.showPopup = false;
     }
 
-    BatteryPopup {
+    Local.Popup {
         module: root
         barWindow: root.barWindow
         colors: root.colors
@@ -368,13 +362,21 @@ BaseModule {
         popupsConfig: root.popupsConfig
     }
 
+    PopupAnchor {
+        id: popupAnchor
+        module: root
+        barWindow: root.barWindow
+        inOverflow: root.inOverflow
+        overflowAnchorModule: root.overflowAnchorModule
+    }
+
     onClicked: {
-        updatePosition();
+        popupAnchor.updatePosition();
         showPopup = !showPopup;
     }
 
-    onXChanged: updatePosition()
-    onWidthChanged: updatePosition()
+    onXChanged: popupAnchor.updatePosition()
+    onWidthChanged: popupAnchor.updatePosition()
 
     visible: hasBattery
 

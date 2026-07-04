@@ -154,7 +154,7 @@ OverlayPanel {
                         width: listView.width
                         height: card.implicitHeight
 
-                        NotificationCard {
+                        Card {
                             id: card
                             anchors.fill: parent
                             entry: modelData

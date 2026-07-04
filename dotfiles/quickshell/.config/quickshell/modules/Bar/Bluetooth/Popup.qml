@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "../Common"
+import "../../Common"
 
 OverlayPanel {
     id: bluetoothPopup

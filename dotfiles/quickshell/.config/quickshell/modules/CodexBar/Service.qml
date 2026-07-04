@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell.Io
 import "codexbar.js" as CodexBar
 
-// CodexBarService — polls `codexbar usage` (every enabled provider in one call)
+// Service — polls `codexbar usage` (every enabled provider in one call)
 // on a timer, plus — when Codex is among the results — a second
 // `--provider codex --all-accounts` call so both Codex accounts stay visible and
 // grouped. Exposes a normalized ListModel + mostCriticalRow for the bar segment
@@ -24,7 +24,7 @@ Item {
     property var mostCriticalRow: null
     // Latched true the first poll that returns any real (non-error) row — i.e.
     // at least one provider has credentials and answered. The bar segment hides
-    // while false (mirrors BatteryModule hiding when upower finds no battery).
+    // while false (mirrors Battery hiding when upower finds no battery).
     // Latched rather than re-evaluated so a transient post-setup error doesn't
     // make the segment flicker off.
     property bool configured: false
@@ -125,7 +125,7 @@ Item {
         root.refresh();
     }
 
-    CodexBarPanel {
+    Panel {
         open: root.panelOpen
         usageModel: usageModel
         mostCriticalRow: root.mostCriticalRow

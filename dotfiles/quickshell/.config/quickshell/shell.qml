@@ -7,9 +7,9 @@ import Quickshell.Hyprland
 import QtQuick.Dialogs
 import "modules/Bar/workspaces/workspaceHelpers.js" as WorkspaceHelpers
 import "modules/Bar"
-import "modules/CodexBar"
-import "modules/ControlOSD"
-import "modules/Notifications"
+import "modules/CodexBar" as CodexFeature
+import "modules/ControlOSD" as OsdFeature
+import "modules/Notifications" as NotifyFeature
 
 ShellRoot {
     id: root
@@ -26,7 +26,7 @@ ShellRoot {
     property QtObject config: configLoader.item
 
     // Notification manager must be declared before Bar since Bar requires it.
-    NotificationManager {
+    NotifyFeature.Manager {
         id: notifications
         colors: config.colors
         fontsConfig: config.fonts
@@ -38,7 +38,7 @@ ShellRoot {
     // property of that name, and `codexBarService: codexBarService` in the
     // delegate would resolve to the Bar's own (null) property instead of this
     // id. Distinct names avoid the QML shadowing footgun.
-    CodexBarService {
+    CodexFeature.Service {
         id: codexBarSvc
         colors: config.colors
         fontsConfig: config.fonts
@@ -71,18 +71,18 @@ ShellRoot {
     }
 
     // Control components
-    BrightnessControl {
+    OsdFeature.Brightness {
         id: brightnessControl
         colors: config.colors
     }
 
-    VolumeControl {
+    OsdFeature.Volume {
         id: volumeControl
         colors: config.colors
     }
 
     // OSD components
-    ControlOSD {
+    OsdFeature.ControlOSD {
         id: brightnessOsd
         title: "Brightness"
         value: brightnessControl.brightness
@@ -91,7 +91,7 @@ ShellRoot {
         osdConfig: config.osd
     }
 
-    ControlOSD {
+    OsdFeature.ControlOSD {
         id: volumeOsd
         title: "Volume"
         value: volumeControl.volume

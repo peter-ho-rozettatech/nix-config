@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Bluetooth
+import ".."
+import "." as Local
 
 BaseModule {
     id: root
@@ -18,7 +20,7 @@ BaseModule {
     property bool available: adapter != null
     property bool enabled: available && adapter.enabled
     property bool showPopup: false
-    property real globalX: 0
+    readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property bool inOverflow: false
     property var overflowAnchorModule: null
@@ -29,11 +31,6 @@ BaseModule {
     hoverHighlight: true
     text: icon
     textColor: !available || !enabled ? colors.comment : connectedDevices.length > 0 ? colors.blue : colors.fg
-
-    function updatePosition() {
-        var pos = root.mapToItem(null, 0, 0);
-        root.globalX = pos.x;
-    }
 
     function displayName(device) {
         if (!device)
@@ -62,17 +59,14 @@ BaseModule {
     }
 
     function popupX(popupWidth) {
-        if (!root.barWindow)
-            return 0;
-        var anchor = root.inOverflow && root.overflowAnchorModule ? root.overflowAnchorModule : root;
-        return Math.max(8, Math.min(anchor.globalX + (anchor.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+        return popupAnchor.popupX(popupWidth);
     }
 
     function closePopup() {
         root.showPopup = false;
     }
 
-    BluetoothPopup {
+    Local.Popup {
         module: root
         barWindow: root.barWindow
         colors: root.colors
@@ -80,12 +74,20 @@ BaseModule {
         popupsConfig: root.popupsConfig
     }
 
-    onXChanged: updatePosition()
-    onWidthChanged: updatePosition()
-    Component.onCompleted: updatePosition()
+    PopupAnchor {
+        id: popupAnchor
+        module: root
+        barWindow: root.barWindow
+        inOverflow: root.inOverflow
+        overflowAnchorModule: root.overflowAnchorModule
+    }
+
+    onXChanged: popupAnchor.updatePosition()
+    onWidthChanged: popupAnchor.updatePosition()
+    Component.onCompleted: popupAnchor.updatePosition()
 
     onClicked: {
-        updatePosition();
+        popupAnchor.updatePosition();
         showPopup = !showPopup;
     }
 }

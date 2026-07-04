@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-// UsageMeter — one labeled usage meter for CodexBarPanel: a [label ......... %]
+// UsageMeter — one labeled usage meter for Panel: a [label ......... %]
 // row, an optional reset countdown, and a colored progress bar. Shared by the
 // primary (5h) and secondary (weekly/monthly) quota windows and by the
 // OpenRouter credits-used meter. Band colors mirror the panel's logic.

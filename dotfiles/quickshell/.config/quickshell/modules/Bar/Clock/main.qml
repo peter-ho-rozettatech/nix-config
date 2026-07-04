@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import ".."
+import "." as Local
 
 BaseModule {
     id: root
@@ -11,7 +13,7 @@ BaseModule {
 
     // Calendar popup state
     property bool showPopup: false
-    property real globalX: 0
+    readonly property real globalX: popupAnchor.globalX
 
     // Month currently in view (0-indexed month)
     property int viewYear: new Date().getFullYear()
@@ -80,27 +82,26 @@ BaseModule {
         text = year + "-" + month + "-" + day + " " + hours + ":" + minutes;
     }
 
-    function updatePosition() {
-        var pos = root.mapToItem(null, 0, 0);
-        root.globalX = pos.x;
-    }
-
     function popupX(popupWidth) {
-        if (!root.barWindow)
-            return 0;
-        return Math.max(8, Math.min(root.globalX + (root.width - popupWidth) / 2, root.barWindow.width - popupWidth - 8));
+        return popupAnchor.popupX(popupWidth);
     }
 
     function closePopup() {
         root.showPopup = false;
     }
 
-    CalendarPopup {
+    Local.Popup {
         module: root
         barWindow: root.barWindow
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+    }
+
+    PopupAnchor {
+        id: popupAnchor
+        module: root
+        barWindow: root.barWindow
     }
 
     function goPrevMonth() {
@@ -127,10 +128,10 @@ BaseModule {
     }
 
     onClicked: {
-        updatePosition();
+        popupAnchor.updatePosition();
         showPopup = !showPopup;
     }
 
-    onXChanged: updatePosition()
-    onWidthChanged: updatePosition()
+    onXChanged: popupAnchor.updatePosition()
+    onWidthChanged: popupAnchor.updatePosition()
 }

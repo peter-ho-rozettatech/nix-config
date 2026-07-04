@@ -27,7 +27,7 @@ Item {
             return;
 
         root.unsupportedCompositorLogged = true;
-        console.log("WorkspacesModule: unsupported compositor");
+        console.log("Workspaces: unsupported compositor");
     }
 
     function refreshBackend() {

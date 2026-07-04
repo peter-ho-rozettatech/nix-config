@@ -72,7 +72,7 @@ PanelWindow {
                 accentColor: colors.blue
             }
 
-            WorkspacesModule {
+            Workspaces {
                 id: workspaces
                 anchors.left: applicationsLauncher.right
                 anchors.leftMargin: barConfig.moduleSpacing
@@ -85,7 +85,7 @@ PanelWindow {
             }
 
             // Center modules
-            ClockModule {
+            Clock {
                 id: clock
                 anchors.centerIn: parent
                 barWindow: root
@@ -163,7 +163,7 @@ PanelWindow {
                 }
                 readonly property var hiddenIds: computeHiddenIds()
 
-                TrayModule {
+                Tray {
                     id: tray
                     height: parent.height
                     barWindow: root
@@ -176,7 +176,7 @@ PanelWindow {
                     popupsConfig: root.popupsConfig
                 }
 
-                CaffeineModule {
+                Caffeine {
                     id: caffeine
                     visible: rightRow.hiddenIds.indexOf("caffeine") < 0
                     height: parent.height
@@ -189,7 +189,7 @@ PanelWindow {
                     popupsConfig: root.popupsConfig
                 }
 
-                StatsModule {
+                Stats {
                     id: stats
                     visible: rightRow.hiddenIds.indexOf("stats") < 0
                     height: parent.height
@@ -204,7 +204,7 @@ PanelWindow {
                     popupsConfig: root.popupsConfig
                 }
 
-                BacklightModule {
+                Backlight {
                     id: backlight
                     visible: rightRow.hiddenIds.indexOf("backlight") < 0
                     height: parent.height
@@ -215,7 +215,7 @@ PanelWindow {
                     fontsConfig: root.fontsConfig
                 }
 
-                AudioModule {
+                Audio {
                     id: pulseaudio
                     visible: rightRow.hiddenIds.indexOf("audio") < 0
                     height: parent.height
@@ -227,7 +227,7 @@ PanelWindow {
                     fontsConfig: root.fontsConfig
                 }
 
-                BatteryModule {
+                Battery {
                     id: battery
                     visible: battery.hasBattery && rightRow.hiddenIds.indexOf("battery") < 0
                     height: parent.height
@@ -242,7 +242,7 @@ PanelWindow {
                     popupsConfig: root.popupsConfig
                 }
 
-                BluetoothModule {
+                Bluetooth {
                     id: bluetooth
                     visible: rightRow.hiddenIds.indexOf("bluetooth") < 0
                     height: parent.height
@@ -255,7 +255,7 @@ PanelWindow {
                     popupsConfig: root.popupsConfig
                 }
 
-                NetworkModule {
+                Network {
                     id: network
                     height: parent.height
                     colors: root.colors
@@ -264,7 +264,7 @@ PanelWindow {
                     fontsConfig: root.fontsConfig
                 }
 
-                CodexBarModule {
+                CodexBar {
                     id: codexbar
                     visible: codexbar.configured && rightRow.hiddenIds.indexOf("codexbar") < 0
                     height: parent.height
@@ -274,7 +274,7 @@ PanelWindow {
                     codexBarService: root.codexBarService
                 }
 
-                NotificationsModule {
+                Notifications {
                     id: notifications
                     height: parent.height
                     colors: root.colors

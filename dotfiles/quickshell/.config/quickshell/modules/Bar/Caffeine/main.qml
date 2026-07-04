@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import ".."
+import "." as Local
 
 BaseModule {
     id: root
@@ -10,7 +12,7 @@ BaseModule {
     property bool active: false
     property int remainingSeconds: 0
     property bool showPicker: false
-    property real globalX: 0
+    readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property bool inOverflow: false
     property var overflowAnchorModule: null
@@ -53,22 +55,15 @@ BaseModule {
         root.showPicker = false;
     }
 
-    function updatePosition() {
-        var pos = root.mapToItem(null, 0, 0);
-        root.globalX = pos.x;
-    }
-
     function popupAnchorX(popupWidth) {
-        if (root.inOverflow && root.overflowAnchorModule)
-            return root.overflowAnchorModule.globalX + (root.overflowAnchorModule.width - popupWidth) / 2;
-        return root.globalX + (root.width - popupWidth) / 2;
+        return popupAnchor.anchorX(popupWidth);
     }
 
     function closePopup() {
         root.showPicker = false;
     }
 
-    CaffeinePickerPopup {
+    Local.Popup {
         module: root
         barWindow: root.barWindow
         colors: root.colors
@@ -76,9 +71,17 @@ BaseModule {
         popupsConfig: root.popupsConfig
     }
 
-    onXChanged: updatePosition()
-    onWidthChanged: updatePosition()
-    Component.onCompleted: updatePosition()
+    PopupAnchor {
+        id: popupAnchor
+        module: root
+        barWindow: root.barWindow
+        inOverflow: root.inOverflow
+        overflowAnchorModule: root.overflowAnchorModule
+    }
+
+    onXChanged: popupAnchor.updatePosition()
+    onWidthChanged: popupAnchor.updatePosition()
+    Component.onCompleted: popupAnchor.updatePosition()
 
     onClicked: {
         if (root.showPicker) {
@@ -90,7 +93,7 @@ BaseModule {
     }
 
     onRightClicked: {
-        updatePosition();
+        popupAnchor.updatePosition();
         root.showPicker = !root.showPicker;
     }
 

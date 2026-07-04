@@ -1,8 +1,8 @@
 import QtQuick
 
-// CodexBarModule — compact bar segment showing the auto-selected most-critical
+// CodexBar — compact bar segment showing the auto-selected most-critical
 // quota source (highest window %), color-coded by band. Cost rows are never
-// picked. Click toggles the detail panel. Mirrors NotificationsModule.qml.
+// picked. Click toggles the detail panel. Mirrors Notifications.qml.
 BaseModule {
     id: root
 
@@ -14,7 +14,7 @@ BaseModule {
     readonly property var critical: codexBarService ? codexBarService.mostCriticalRow : null
 
     // True once codexbar has returned any real data this session (the service
-    // latches it). While false the segment is hidden — mirrors BatteryModule's
+    // latches it). While false the segment is hidden — mirrors Battery's
     // hasBattery hiding when there is no battery.
     readonly property bool configured: codexBarService ? codexBarService.configured : false
 
