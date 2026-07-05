@@ -579,82 +579,83 @@ return {
     --         disable_capabilities_for_server(client)
     --     end,
     -- },
+    tsgo = {},
     typos_lsp = {
         init_options = {
             diagnosticSeverity = "information",
         },
     },
-    -- https://github.com/yioneko/vtsls/blob/main/packages/service/configuration.schema.json
-    vtsls = {
-        lazy = true,
-        filetypes = {
-            "javascript",
-            "javascriptreact",
-            "javascript.jsx",
-            "typescript",
-            "typescriptreact",
-            "typescript.tsx",
-        },
-        config = function()
-            local config = {
-                init_options = {
-                    hostInfo = "neovim",
-                },
-                settings = {
-                    vtsls = {
-                        autoUserWorkspaceTsdk = true,
-                        experimental = {
-                            completion = { enableServerSideFuzzyMatch = true },
-                        },
-                    },
-                    typescript = {
-                        inlayHints = {
-                            parameterNames = { enabled = "all" },
-                            parameterTypes = { enabled = true },
-                            variableTypes = { enabled = true },
-                            propertyDeclarationTypes = { enabled = true },
-                            functionLikeReturnTypes = { enabled = true },
-                            enumMemberValues = { enabled = true },
-                        },
-                    },
-                    javascript = {
-                        inlayHints = {
-                            parameterNames = { enabled = "all" },
-                            parameterTypes = { enabled = true },
-                            variableTypes = { enabled = true },
-                            propertyDeclarationTypes = { enabled = true },
-                            functionLikeReturnTypes = { enabled = true },
-                            enumMemberValues = { enabled = true },
-                        },
-                    },
-                },
-                on_attach = function(client, bufnr)
-                    vim.api.nvim_buf_create_user_command(bufnr, "VtslsOrganizeImports", function()
-                        client:exec_cmd({
-                            command = "typescript.organizeImports",
-                            arguments = { vim.api.nvim_buf_get_name(0) },
-                        })
-                    end, { desc = "Organize Imports" })
-
-                    vim.keymap.set(
-                        "n",
-                        "gro",
-                        "<CMD>VtslsOrganizeImports<CR>",
-                        { buffer = bufnr, desc = "Organize Imports" }
-                    )
-                end,
-            }
-
-            local yarn_sdks = vim.fs.find({ "sdks" }, { type = "directory", path = ".yarn" })
-            if #yarn_sdks > 0 then
-                config.settings.vtsls.typescript = {
-                    globalTsdk = "./.yarn/sdks/typescript/lib",
-                }
-            end
-
-            return config
-        end,
-    },
+    -- -- https://github.com/yioneko/vtsls/blob/main/packages/service/configuration.schema.json
+    -- vtsls = {
+    --     lazy = true,
+    --     filetypes = {
+    --         "javascript",
+    --         "javascriptreact",
+    --         "javascript.jsx",
+    --         "typescript",
+    --         "typescriptreact",
+    --         "typescript.tsx",
+    --     },
+    --     config = function()
+    --         local config = {
+    --             init_options = {
+    --                 hostInfo = "neovim",
+    --             },
+    --             settings = {
+    --                 vtsls = {
+    --                     autoUserWorkspaceTsdk = true,
+    --                     experimental = {
+    --                         completion = { enableServerSideFuzzyMatch = true },
+    --                     },
+    --                 },
+    --                 typescript = {
+    --                     inlayHints = {
+    --                         parameterNames = { enabled = "all" },
+    --                         parameterTypes = { enabled = true },
+    --                         variableTypes = { enabled = true },
+    --                         propertyDeclarationTypes = { enabled = true },
+    --                         functionLikeReturnTypes = { enabled = true },
+    --                         enumMemberValues = { enabled = true },
+    --                     },
+    --                 },
+    --                 javascript = {
+    --                     inlayHints = {
+    --                         parameterNames = { enabled = "all" },
+    --                         parameterTypes = { enabled = true },
+    --                         variableTypes = { enabled = true },
+    --                         propertyDeclarationTypes = { enabled = true },
+    --                         functionLikeReturnTypes = { enabled = true },
+    --                         enumMemberValues = { enabled = true },
+    --                     },
+    --                 },
+    --             },
+    --             on_attach = function(client, bufnr)
+    --                 vim.api.nvim_buf_create_user_command(bufnr, "VtslsOrganizeImports", function()
+    --                     client:exec_cmd({
+    --                         command = "typescript.organizeImports",
+    --                         arguments = { vim.api.nvim_buf_get_name(0) },
+    --                     })
+    --                 end, { desc = "Organize Imports" })
+    --
+    --                 vim.keymap.set(
+    --                     "n",
+    --                     "gro",
+    --                     "<CMD>VtslsOrganizeImports<CR>",
+    --                     { buffer = bufnr, desc = "Organize Imports" }
+    --                 )
+    --             end,
+    --         }
+    --
+    --         local yarn_sdks = vim.fs.find({ "sdks" }, { type = "directory", path = ".yarn" })
+    --         if #yarn_sdks > 0 then
+    --             config.settings.vtsls.typescript = {
+    --                 globalTsdk = "./.yarn/sdks/typescript/lib",
+    --             }
+    --         end
+    --
+    --         return config
+    --     end,
+    -- },
     yamlls = {
         lazy = true,
         filetypes = { "yaml", "yml" },

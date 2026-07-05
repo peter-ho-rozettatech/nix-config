@@ -78,9 +78,10 @@
       templ
       tflint
       unstable.ty
+      typescript-go
       typos-lsp
       vscode-langservers-extracted # html, css, json, eslint
-      vtsls
+      # vtsls
       yaml-language-server
 
       # everything everywhere all at once
