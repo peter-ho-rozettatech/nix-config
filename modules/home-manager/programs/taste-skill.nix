@@ -31,6 +31,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.ai.resources.skills = lib.mapAttrs (_: source: { inherit source; }) selectedSkills;
+    programs.ai.skills = lib.mapAttrs (_: source: { inherit source; }) selectedSkills;
   };
 }

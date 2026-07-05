@@ -2,7 +2,7 @@
   imports = [
     ./agent-indicator.nix
     ./agents.nix
-    ./ai-resources.nix
+    ./ai.nix
     ./annot.nix
     ./anthropic-skills.nix
     ./betterfox.nix
@@ -10,7 +10,6 @@
     ./claude-code.nix
     ./crush.nix
     ./impeccable.nix
-    ./lsp.nix
     ./plannotator.nix
     ./playwriter.nix
     ./superpowers.nix

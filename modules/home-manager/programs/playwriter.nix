@@ -11,12 +11,11 @@
 
   config = lib.mkIf config.programs.playwriter.enable {
     home.packages = [ pkgs.playwriter ];
-    programs.mcp.servers.playwriter = {
+    programs.ai.mcp.playwriter = {
       command = "playwriter";
       args = [ ];
       disabled = false;
     };
-    programs.ai.resources.skills.playwriter.source =
-      "${pkgs.playwriter}/share/playwriter/skills/playwriter";
+    programs.ai.skills.playwriter.source = "${pkgs.playwriter}/share/playwriter/skills/playwriter";
   };
 }

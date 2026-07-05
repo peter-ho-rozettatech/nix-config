@@ -1,7 +1,6 @@
 {
   pkgs,
   config,
-  lib,
   ...
 }:
 let
@@ -16,51 +15,6 @@ let
     openspec
     workmux
   ];
-
-  lspServers = config.programs.lsp.servers;
-
-  extensionMap = {
-    sh = ".sh";
-    bash = ".bash";
-    javascript = ".js";
-    javascriptreact = ".jsx";
-    typescript = ".ts";
-    typescriptreact = ".tsx";
-    vue = ".vue";
-    svelte = ".svelte";
-    python = ".py";
-    pyi = ".pyi";
-    lua = ".lua";
-    nix = ".nix";
-    terraform = ".tf";
-    tf = ".tfvars";
-  };
-
-  toOpencodeLsp =
-    name: cfg:
-    let
-      extensions = map (ft: extensionMap.${ft} or ".${ft}") cfg.filetypes;
-    in
-    {
-      command = [ cfg.command ] ++ cfg.args;
-      inherit extensions;
-    };
-  opencodeLspConfig = lib.mapAttrs toOpencodeLsp lspServers // {
-    lua-ls.disabled = true;
-    pyright.disabled = true;
-    typescript.disabled = true;
-  };
-
-  toClaudeCodeLsp =
-    name: cfg:
-    {
-      command = cfg.command;
-      extensionToLanguage = lib.listToAttrs (
-        map (ft: lib.nameValuePair (extensionMap.${ft} or ".${ft}") ft) cfg.filetypes
-      );
-    }
-    // lib.optionalAttrs (cfg.args != [ ]) { args = cfg.args; };
-  claudeCodeLspConfig = lib.mapAttrs toClaudeCodeLsp lspServers;
 in
 {
   home = {
@@ -93,77 +47,74 @@ in
     };
   };
   programs = {
-    lsp = {
-      enable = true;
-      servers = {
-        bashls = {
-          command = "bash-language-server";
-          args = [ "start" ];
-          filetypes = [
-            "sh"
-            "bash"
-          ];
-        };
-        basedpyright = {
-          command = "basedpyright-langserver";
-          args = [
-            "--stdio"
-          ];
-          filetypes = [
-            "python"
-            "pyi"
-          ];
-        };
-        eslint = {
-          command = "vscode-eslint-language-server";
-          args = [ "--stdio" ];
-          filetypes = [
-            "javascript"
-            "javascriptreact"
-            "typescript"
-            "typescriptreact"
-            "vue"
-            "svelte"
-          ];
-        };
-        lua-lsp = {
-          command = "lua-language-server";
-          args = [ ];
-          filetypes = [ "lua" ];
-        };
-        nil_ls = {
-          command = "nil";
-          args = [ ];
-          filetypes = [ "nix" ];
-        };
-        # pyrefly = {
-        #   command = "pyrefly";
-        #   args = [ "lsp" ];
-        #   filetypes = [
-        #     "python"
-        #     "pyi"
-        #   ];
-        # };
-        terraformls = {
-          command = "terraform-ls";
-          args = [
-            "serve"
-          ];
-          filetypes = [
-            "terraform"
-            "tf"
-          ];
-        };
-        vtsls = {
-          command = "vtsls";
-          args = [ "--stdio" ];
-          filetypes = [
-            "javascript"
-            "javascriptreact"
-            "typescript"
-            "typescriptreact"
-          ];
-        };
+    ai.lsp = {
+      bashls = {
+        command = "bash-language-server";
+        args = [ "start" ];
+        filetypes = [
+          "sh"
+          "bash"
+        ];
+      };
+      basedpyright = {
+        command = "basedpyright-langserver";
+        args = [
+          "--stdio"
+        ];
+        filetypes = [
+          "python"
+          "pyi"
+        ];
+      };
+      eslint = {
+        command = "vscode-eslint-language-server";
+        args = [ "--stdio" ];
+        filetypes = [
+          "javascript"
+          "javascriptreact"
+          "typescript"
+          "typescriptreact"
+          "vue"
+          "svelte"
+        ];
+      };
+      lua-lsp = {
+        command = "lua-language-server";
+        args = [ ];
+        filetypes = [ "lua" ];
+      };
+      nil_ls = {
+        command = "nil";
+        args = [ ];
+        filetypes = [ "nix" ];
+      };
+      # pyrefly = {
+      #   command = "pyrefly";
+      #   args = [ "lsp" ];
+      #   filetypes = [
+      #     "python"
+      #     "pyi"
+      #   ];
+      # };
+      terraformls = {
+        command = "terraform-ls";
+        args = [
+          "serve"
+        ];
+        filetypes = [
+          "terraform"
+          "tf"
+        ];
+      };
+      vtsls = {
+        command = "vtsls";
+        args = [ "--stdio" ];
+        filetypes = [
+          "javascript"
+          "javascriptreact"
+          "typescript"
+          "typescriptreact"
+        ];
       };
     };
     mcp = {
@@ -193,7 +144,6 @@ in
       enable = true;
       package = pkgs.llm-agents.claude-code;
       enableMcpIntegration = true;
-      lspServers = claudeCodeLspConfig;
     };
     codex = {
       enable = true;
@@ -228,7 +178,11 @@ in
         autoshare = false;
         autoupdate = false;
         # snapshot = false;
-        lsp = opencodeLspConfig;
+        lsp = {
+          lua-ls.disabled = true;
+          pyright.disabled = true;
+          typescript.disabled = true;
+        };
         small_model = "opencode-go/deepseek-v4-flash";
         plugin = [
           # "@bastiangx/opencode-unmoji"

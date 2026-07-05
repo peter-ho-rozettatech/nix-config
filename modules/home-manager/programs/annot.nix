@@ -14,7 +14,7 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.llm-agents.annot ];
-    programs.mcp.servers.annot = {
+    programs.ai.mcp.annot = {
       command = "annot";
       args = [ "mcp" ];
       disabled = false;

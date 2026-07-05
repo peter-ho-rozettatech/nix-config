@@ -32,24 +32,24 @@ in
   config = lib.mkIf cfg.skills.enable (
     lib.mkMerge [
       {
-        home.file =
-          lib.mapAttrs' (
-            name: _:
-            lib.nameValuePair ".agents/skills/${name}" {
-              source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
-            }
-          ) availableSkills
-          // lib.mapAttrs' (
-            name: _:
-            lib.nameValuePair ".claude/skills/${name}" {
-              source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
-            }
-          ) availableSkills;
-      }
+        home.file = lib.mapAttrs' (
+          name: _:
+          lib.nameValuePair ".agents/skills/${name}" {
+            source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
+          }
+        ) availableSkills;
 
-      (lib.mkIf config.programs.opencode.enable {
-        programs.opencode.commands = skillCommands;
-      })
+        programs.ai.skills = lib.mapAttrs (name: _: {
+          source = skillsDir + "/${name}";
+          clients = {
+            opencode = {
+              enable = false;
+              commands.${name} = skillCommands.${name};
+            };
+            codex.enable = false;
+          };
+        }) availableSkills;
+      }
     ]
   );
 }

@@ -10,20 +10,18 @@
   };
 
   config = lib.mkIf config.programs.superpowers.enable {
-    programs.ai.resources = {
-      skills.superpowers = {
-        source = "${pkgs.superpowers}/share/superpowers/skills";
-        clients.claude-code.enable = false;
+    programs.ai.skills.superpowers = {
+      source = "${pkgs.superpowers}/share/superpowers/skills";
+      clients = {
+        opencode.files."opencode/plugins/superpowers.js".source =
+          "${pkgs.superpowers}/share/superpowers/.opencode/plugins/superpowers.js";
+        "claude-code" = {
+          enable = false;
+          pluginPaths = [
+            "${pkgs.superpowers}/share/superpowers"
+          ];
+        };
       };
-      opencodePlugins = [
-        {
-          files."opencode/plugins/superpowers.js".source =
-            "${pkgs.superpowers}/share/superpowers/.opencode/plugins/superpowers.js";
-        }
-      ];
-      claudePlugins = lib.mkAfter [
-        "${pkgs.superpowers}/share/superpowers"
-      ];
     };
   };
 }

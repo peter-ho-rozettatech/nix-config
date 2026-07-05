@@ -6,29 +6,40 @@
 }:
 let
   cfg = config.programs.crush;
-  lspServers = config.programs.lsp.servers;
 
-  toCrushLsp = name: cfg: cfg;
-  crushLspConfig = lib.mapAttrs toCrushLsp lspServers;
+  enabledLspCapabilities = lib.filterAttrs (
+    _: server: server.clients.crush.enable
+  ) config.programs.ai.lsp;
+
+  toCrushLsp = _: server: removeAttrs server [ "clients" ] // server.clients.crush.settings;
+  crushLspConfig = lib.mapAttrs toCrushLsp enabledLspCapabilities;
 
   toCrushMcp =
     _: server:
-    lib.optionalAttrs (server ? type) { type = server.type; }
-    // lib.optionalAttrs (server ? command) {
-      type = "stdio";
+    lib.optionalAttrs (server.type or null != null) { type = server.type; }
+    // lib.optionalAttrs (server.command or null != null) {
+      type = server.type or "stdio";
       command = server.command;
       args = server.args or [ ];
     }
-    // lib.optionalAttrs (server ? url) {
+    // lib.optionalAttrs (server.url or null != null) {
       type = server.type or "http";
       url = server.url;
     }
-    // lib.optionalAttrs (server ? env) { env = server.env; }
-    // lib.optionalAttrs (server ? headers) { headers = server.headers; }
-    // lib.optionalAttrs (server ? disabled) { disabled = server.disabled; }
-    // lib.optionalAttrs (server ? disabled_tools) { disabled_tools = server.disabled_tools; }
-    // lib.optionalAttrs (server ? timeout) { timeout = server.timeout; };
-  crushMcpConfig = lib.mapAttrs toCrushMcp config.programs.mcp.servers;
+    // lib.optionalAttrs (server.env or { } != { }) { env = server.env; }
+    // lib.optionalAttrs (server.headers or { } != { }) { headers = server.headers; }
+    // lib.optionalAttrs (server.disabled or null != null) { disabled = server.disabled; }
+    // lib.optionalAttrs (!(server ? disabled) && server.enabled != null) {
+      disabled = !server.enabled;
+    }
+    // lib.optionalAttrs (server.disabled_tools or [ ] != [ ]) {
+      disabled_tools = server.disabled_tools;
+    }
+    // lib.optionalAttrs (server.timeout or null != null) { timeout = server.timeout; }
+    // server.clients.crush.settings;
+  crushMcpConfig = lib.mapAttrs toCrushMcp (
+    lib.filterAttrs (_: server: server.clients.crush.enable) config.programs.ai.mcp
+  );
 
   crushConfig = builtins.toJSON {
     "$schema" = "https://charm.land/crush.json";

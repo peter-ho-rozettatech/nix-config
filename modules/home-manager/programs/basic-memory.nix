@@ -30,11 +30,11 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.basic-memory ];
-    programs.mcp.servers.basic-memory = {
+    programs.ai.mcp.basic-memory = {
       command = "basic-memory-mcp";
       args = [ ];
       disabled = false;
     };
-    programs.ai.resources.skills = lib.mapAttrs (_: source: { inherit source; }) selectedSkills;
+    programs.ai.skills = lib.mapAttrs (_: source: { inherit source; }) selectedSkills;
   };
 }
