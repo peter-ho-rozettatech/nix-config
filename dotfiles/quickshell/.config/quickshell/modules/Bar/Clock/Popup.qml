@@ -9,95 +9,117 @@ OverlayHost {
     property QtObject colors
     property QtObject fontsConfig
     property QtObject popupsConfig
-        screen: barWindow ? barWindow.screen : null
-        open: module && module.showPopup
-        onCloseRequested: if (module) module.showPopup = false
+    screen: barWindow ? barWindow.screen : null
+    open: module && module.showPopup
+    onCloseRequested: if (module)
+        module.showPopup = false
 
-        Rectangle {
-            id: calendarBg
-            width: calendarCol.width + (popupsConfig ? popupsConfig.padding : 0)
-            height: calendarCol.height + (popupsConfig ? popupsConfig.margin : 0)
-            x: module ? module.popupX(width) : 0
-            y: (barWindow ? barWindow.height : 0) + 4
-            color: colors.bg
-            border.color: colors.border
-            radius: popupsConfig.cornerRadius
-            opacity: calendarPopup.open ? 1.0 : 0.0
-            scale: calendarPopup.open ? 1.0 : 0.98
-            transformOrigin: Item.Top
+    Rectangle {
+        id: calendarBg
+        readonly property int popupPadding: popupsConfig ? popupsConfig.padding : 16
+        readonly property int popupMargin: popupsConfig ? popupsConfig.margin : 8
+        readonly property real preferredHeight: calendarCol.implicitHeight + popupMargin
+        readonly property real availableHeight: Math.max(1, (parent ? parent.height : preferredHeight) - y - popupMargin)
 
-            Behavior on opacity {
-                NumberAnimation { duration: 180 }
+        width: __gridWidth + popupPadding
+        height: Math.min(preferredHeight, availableHeight)
+        x: module ? module.popupX(width) : 0
+        y: (barWindow ? barWindow.height : 0) + 4
+        color: colors.bg
+        border.color: colors.border
+        radius: popupsConfig.cornerRadius
+        opacity: calendarPopup.open ? 1.0 : 0.0
+        scale: calendarPopup.open ? 1.0 : 0.98
+        transformOrigin: Item.Top
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 180
             }
-            Behavior on scale {
-                NumberAnimation { duration: 180 }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: 180
             }
+        }
 
-            // Single hover-only overlay on top of the whole popup.
-            // acceptedButtons: NoButton lets clicks fall through to the
-            // buttons/cells beneath while this surface reliably tracks
-            // enter/leave (no nested-MouseArea hover thrashing).
-            // onPositionChanged resolves the hovered cell + button flags ONCE
-            // per move; children bind to those cheaply instead of each doing
-            // their own coordinate transform.
-            MouseArea {
-                id: calHover
-                anchors.fill: parent
-                hoverEnabled: true
-                acceptedButtons: Qt.NoButton
-                z: 1000
-                onExited: {
+        // Single hover-only overlay on top of the whole popup.
+        // acceptedButtons: NoButton lets clicks fall through to the
+        // buttons/cells beneath while this surface reliably tracks
+        // enter/leave (no nested-MouseArea hover thrashing).
+        // onPositionChanged resolves the hovered cell + button flags ONCE
+        // per move; children bind to those cheaply instead of each doing
+        // their own coordinate transform.
+        MouseArea {
+            id: calHover
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.NoButton
+            z: 1000
+            onExited: {
+                calendarBg.hoveredCellIndex = -1;
+                calendarBg.prevHovered = false;
+                calendarBg.nextHovered = false;
+                calendarBg.todayHovered = false;
+            }
+            onPositionChanged: function (mouse) {
+                var mx = mouse.x;
+                var my = mouse.y;
+                calendarBg.prevHovered = calendarBg.__contains(prevBtn, mx, my);
+                calendarBg.nextHovered = calendarBg.__contains(nextBtn, mx, my);
+                calendarBg.todayHovered = calendarBg.__contains(todayBtn, mx, my);
+                var o = dayGrid.mapToItem(calendarBg, 0, 0);
+                var relX = mx - o.x;
+                var relY = my - o.y;
+                var pitch = calendarBg.__gridPitch;
+                var cs = calendarBg.__cellSize;
+                if (relX < 0 || relY < 0 || relX >= dayGrid.width || relY >= dayGrid.height) {
                     calendarBg.hoveredCellIndex = -1;
-                    calendarBg.prevHovered = false;
-                    calendarBg.nextHovered = false;
-                    calendarBg.todayHovered = false;
+                    return;
                 }
-                onPositionChanged: function (mouse) {
-                    var mx = mouse.x;
-                    var my = mouse.y;
-                    calendarBg.prevHovered = calendarBg.__contains(prevBtn, mx, my);
-                    calendarBg.nextHovered = calendarBg.__contains(nextBtn, mx, my);
-                    calendarBg.todayHovered = calendarBg.__contains(todayBtn, mx, my);
-                    var o = dayGrid.mapToItem(calendarBg, 0, 0);
-                    var relX = mx - o.x;
-                    var relY = my - o.y;
-                    var pitch = calendarBg.__gridPitch;
-                    var cs = calendarBg.__cellSize;
-                    if (relX < 0 || relY < 0 || relX >= dayGrid.width || relY >= dayGrid.height) {
-                        calendarBg.hoveredCellIndex = -1;
-                        return;
-                    }
-                    var col = Math.floor(relX / pitch);
-                    var row = Math.floor(relY / pitch);
-                    var cx = col * pitch;
-                    var cy = row * pitch;
-                    if (col >= 0 && col < 7 && row >= 0 && row < 6 && relX < cx + cs && relY < cy + cs)
-                        calendarBg.hoveredCellIndex = row * 7 + col;
-                    else
-                        calendarBg.hoveredCellIndex = -1;
-                }
+                var col = Math.floor(relX / pitch);
+                var row = Math.floor(relY / pitch);
+                var cx = col * pitch;
+                var cy = row * pitch;
+                if (col >= 0 && col < 7 && row >= 0 && row < 6 && relX < cx + cs && relY < cy + cs)
+                    calendarBg.hoveredCellIndex = row * 7 + col;
+                else
+                    calendarBg.hoveredCellIndex = -1;
             }
+        }
 
-            readonly property int __cellSize: fontsConfig.defaultSize + 22
-            readonly property int __gridGap: 2
-            readonly property int __gridPitch: __cellSize + __gridGap
-            readonly property int __gridWidth: __cellSize * 7 + __gridGap * 6
+        readonly property int __cellSize: fontsConfig.defaultSize + 22
+        readonly property int __gridGap: 2
+        readonly property int __gridPitch: __cellSize + __gridGap
+        readonly property int __gridWidth: __cellSize * 7 + __gridGap * 6
 
-            // Hover state, resolved once per move by calHover above.
-            property int hoveredCellIndex: -1
-            property bool prevHovered: false
-            property bool nextHovered: false
-            property bool todayHovered: false
+        // Hover state, resolved once per move by calHover above.
+        property int hoveredCellIndex: -1
+        property bool prevHovered: false
+        property bool nextHovered: false
+        property bool todayHovered: false
 
-            // Bounds check of a calendarBg-space point against an item.
-            function __contains(item, mx, my) {
-                var o = item.mapToItem(calendarBg, 0, 0);
-                return mx >= o.x && my >= o.y && mx < o.x + item.width && my < o.y + item.height;
-            }
+        // Bounds check of a calendarBg-space point against an item.
+        function __contains(item, mx, my) {
+            var o = item.mapToItem(calendarBg, 0, 0);
+            return mx >= o.x && my >= o.y && mx < o.x + item.width && my < o.y + item.height;
+        }
+
+        Flickable {
+            id: calendarFlick
+            x: calendarBg.popupPadding / 2
+            y: calendarBg.popupMargin / 2
+            width: Math.max(1, parent.width - calendarBg.popupPadding)
+            height: Math.max(1, parent.height - calendarBg.popupMargin)
+            clip: true
+            contentWidth: width
+            contentHeight: calendarCol.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
 
             Column {
                 id: calendarCol
-                anchors.centerIn: parent
+                width: calendarFlick.width
                 spacing: popupsConfig.itemSpacing
 
                 // Header: prev | month label | next
@@ -262,3 +284,4 @@ OverlayHost {
             }
         }
     }
+}

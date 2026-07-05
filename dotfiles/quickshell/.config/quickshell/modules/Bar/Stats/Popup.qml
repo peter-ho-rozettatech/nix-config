@@ -9,37 +9,59 @@ OverlayHost {
     property QtObject colors
     property QtObject fontsConfig
     property QtObject popupsConfig
-        screen: barWindow ? barWindow.screen : null
-        open: module && module.showPopup
-        onCloseRequested: if (module) module.showPopup = false
+    screen: barWindow ? barWindow.screen : null
+    open: module && module.showPopup
+    onCloseRequested: if (module)
+        module.showPopup = false
 
-        readonly property int contentW: 440 - popupsConfig.padding * 2
-        readonly property int valueW: 64
+    readonly property int popupPadding: popupsConfig ? popupsConfig.padding : 16
+    readonly property int popupMargin: popupsConfig ? popupsConfig.margin : 8
+    readonly property int popupCornerRadius: popupsConfig ? popupsConfig.cornerRadius : 4
+    readonly property int contentW: 440 - popupPadding * 2
+    readonly property int valueW: 64
 
-        Rectangle {
-            id: statsCard
-            width: 440
-            height: statsPopupCol.height + (popupsConfig ? popupsConfig.padding : 0)
-            x: module ? module.popupX(width) : 0
-            y: (barWindow ? barWindow.height : 0) + 4
-            color: colors.bg
-            border.color: colors.border
-            radius: popupsConfig.cornerRadius
-            opacity: statsPopup.open ? 1.0 : 0.0
-            scale: statsPopup.open ? 1.0 : 0.98
-            transformOrigin: Item.Top
+    Rectangle {
+        id: statsCard
+        readonly property real preferredHeight: statsPopupCol.implicitHeight + statsPopup.popupPadding
+        readonly property real availableHeight: Math.max(1, (parent ? parent.height : preferredHeight) - y - statsPopup.popupMargin)
 
-            Behavior on opacity {
-                NumberAnimation { duration: 180 }
+        width: 440
+        height: Math.min(preferredHeight, availableHeight)
+        x: module ? module.popupX(width) : 0
+        y: (barWindow ? barWindow.height : 0) + 4
+        color: colors.bg
+        border.color: colors.border
+        radius: statsPopup.popupCornerRadius
+        opacity: statsPopup.open ? 1.0 : 0.0
+        scale: statsPopup.open ? 1.0 : 0.98
+        transformOrigin: Item.Top
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 180
             }
-            Behavior on scale {
-                NumberAnimation { duration: 180 }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: 180
             }
+        }
+
+        Flickable {
+            id: statsFlick
+            x: statsPopup.popupPadding
+            y: statsPopup.popupPadding / 2
+            width: Math.max(1, parent.width - statsPopup.popupPadding * 2)
+            height: Math.max(1, parent.height - statsPopup.popupPadding)
+            clip: true
+            contentWidth: width
+            contentHeight: statsPopupCol.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
 
             Column {
                 id: statsPopupCol
-                anchors.centerIn: parent
-                width: statsPopup.contentW
+                width: statsFlick.width
                 spacing: 3
 
                 // ---------- CPU ----------
@@ -462,3 +484,4 @@ OverlayHost {
             }
         }
     }
+}

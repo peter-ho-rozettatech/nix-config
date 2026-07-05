@@ -9,39 +9,58 @@ OverlayHost {
     property QtObject colors
     property QtObject fontsConfig
     property QtObject popupsConfig
-        screen: barWindow ? barWindow.screen : null
-        open: module && module.showPopup
-        onCloseRequested: if (module) module.showPopup = false
+    screen: barWindow ? barWindow.screen : null
+    open: module && module.showPopup
+    onCloseRequested: if (module)
+        module.showPopup = false
 
-        readonly property int popupPadding: popupsConfig ? popupsConfig.padding : 16
-        readonly property int popupMargin: popupsConfig ? popupsConfig.margin : 8
-        readonly property int popupCornerRadius: popupsConfig ? popupsConfig.cornerRadius : 4
-        readonly property int popupItemSpacing: popupsConfig ? popupsConfig.itemSpacing : 4
+    readonly property int popupPadding: popupsConfig ? popupsConfig.padding : 16
+    readonly property int popupMargin: popupsConfig ? popupsConfig.margin : 8
+    readonly property int popupCornerRadius: popupsConfig ? popupsConfig.cornerRadius : 4
+    readonly property int popupItemSpacing: popupsConfig ? popupsConfig.itemSpacing : 4
 
-        Rectangle {
-            id: batteryCard
-            width: 360
-            height: batteryPopupCol.height + batteryPopup.popupMargin
-            x: module ? module.popupX(width) : 0
-            y: (barWindow ? barWindow.height : 0) + 4
-            color: colors.bg
-            border.color: colors.border
-            radius: batteryPopup.popupCornerRadius
-            opacity: batteryPopup.open ? 1.0 : 0.0
-            scale: batteryPopup.open ? 1.0 : 0.98
-            transformOrigin: Item.Top
+    Rectangle {
+        id: batteryCard
+        readonly property real preferredHeight: batteryPopupCol.implicitHeight + batteryPopup.popupMargin
+        readonly property real availableHeight: Math.max(1, (parent ? parent.height : preferredHeight) - y - batteryPopup.popupMargin)
 
-            Behavior on opacity {
-                NumberAnimation { duration: 180 }
+        width: 360
+        height: Math.min(preferredHeight, availableHeight)
+        x: module ? module.popupX(width) : 0
+        y: (barWindow ? barWindow.height : 0) + 4
+        color: colors.bg
+        border.color: colors.border
+        radius: batteryPopup.popupCornerRadius
+        opacity: batteryPopup.open ? 1.0 : 0.0
+        scale: batteryPopup.open ? 1.0 : 0.98
+        transformOrigin: Item.Top
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 180
             }
-            Behavior on scale {
-                NumberAnimation { duration: 180 }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: 180
             }
+        }
+
+        Flickable {
+            id: batteryFlick
+            x: batteryPopup.popupPadding / 2
+            y: batteryPopup.popupMargin / 2
+            width: Math.max(1, parent.width - batteryPopup.popupPadding)
+            height: Math.max(1, parent.height - batteryPopup.popupMargin)
+            clip: true
+            contentWidth: width
+            contentHeight: batteryPopupCol.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
 
             Column {
                 id: batteryPopupCol
-                anchors.centerIn: parent
-                width: parent.width - batteryPopup.popupPadding
+                width: batteryFlick.width
                 spacing: batteryPopup.popupItemSpacing
 
                 Text {
@@ -132,3 +151,4 @@ OverlayHost {
             }
         }
     }
+}

@@ -14,33 +14,54 @@ OverlayHost {
     property var hiddenIds: []
     property var idMap: ({})
     property var overflowNames: ({})
-        screen: barWindow ? barWindow.screen : null
-        open: module && module.expanded
-        onCloseRequested: if (module) module.expanded = false
+    screen: barWindow ? barWindow.screen : null
+    open: module && module.expanded
+    onCloseRequested: if (module)
+        module.expanded = false
 
-        Rectangle {
-            id: trayCard
-            width: trayPopupCol.width + (popupsConfig ? popupsConfig.padding : 0)
-            height: trayPopupCol.height + (popupsConfig ? popupsConfig.margin : 0)
-            x: module ? module.popupX(width) : 0
-            y: (barWindow ? barWindow.height : 0) + 4
-            color: colors.bg
-            border.color: colors.border
-            radius: popupsConfig.cornerRadius
-            opacity: trayPopup.open ? 1.0 : 0.0
-            scale: trayPopup.open ? 1.0 : 0.98
-            transformOrigin: Item.Top
+    Rectangle {
+        id: trayCard
+        readonly property int popupPadding: popupsConfig ? popupsConfig.padding : 16
+        readonly property int popupMargin: popupsConfig ? popupsConfig.margin : 8
+        readonly property real preferredHeight: trayPopupCol.implicitHeight + popupMargin
+        readonly property real availableHeight: Math.max(1, (parent ? parent.height : preferredHeight) - y - popupMargin)
 
-            Behavior on opacity {
-                NumberAnimation { duration: 180 }
+        width: trayPopupCol.implicitWidth + popupPadding
+        height: Math.min(preferredHeight, availableHeight)
+        x: module ? module.popupX(width) : 0
+        y: (barWindow ? barWindow.height : 0) + 4
+        color: colors.bg
+        border.color: colors.border
+        radius: popupsConfig.cornerRadius
+        opacity: trayPopup.open ? 1.0 : 0.0
+        scale: trayPopup.open ? 1.0 : 0.98
+        transformOrigin: Item.Top
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 180
             }
-            Behavior on scale {
-                NumberAnimation { duration: 180 }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: 180
             }
+        }
+
+        Flickable {
+            id: trayFlick
+            x: trayCard.popupPadding / 2
+            y: trayCard.popupMargin / 2
+            width: Math.max(1, parent.width - trayCard.popupPadding)
+            height: Math.max(1, parent.height - trayCard.popupMargin)
+            clip: true
+            contentWidth: trayPopupCol.implicitWidth
+            contentHeight: trayPopupCol.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
 
             Column {
                 id: trayPopupCol
-                anchors.centerIn: parent
                 spacing: popupsConfig.itemSpacing
 
                 Row {
@@ -133,7 +154,8 @@ OverlayHost {
                                 id: ovMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: if (_mod) _mod.clicked()
+                                onClicked: if (_mod)
+                                    _mod.clicked()
                             }
                         }
                     }
@@ -141,3 +163,4 @@ OverlayHost {
             }
         }
     }
+}
