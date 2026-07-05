@@ -127,6 +127,7 @@ OverlayHost {
 
                 // Header: prev | month label | next
                 Row {
+                    id: headerRow
                     width: calendarBg.__gridWidth
                     spacing: popupsConfig.itemSpacing
 
@@ -152,7 +153,7 @@ OverlayHost {
                     }
 
                     Text {
-                        width: calendarBg.__gridWidth - calendarBg.__cellSize * 2
+                        width: Math.max(1, calendarBg.__gridWidth - calendarBg.__cellSize * 2 - headerRow.spacing * 2)
                         height: calendarBg.__cellSize
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
