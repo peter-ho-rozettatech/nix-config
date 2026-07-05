@@ -42,6 +42,12 @@ let
 
   skillsFor = clientName: lib.mapAttrs (_: sourceFor clientName) (enabledSkillsFor clientName);
 
+  skillFilesFor =
+    clientName: targetDir:
+    lib.mapAttrs' (name: source: lib.nameValuePair "${targetDir}/${name}" { inherit source; }) (
+      skillsFor clientName
+    );
+
   cleanFileSpec = lib.filterAttrs (_: value: value != null);
 
   filesFor =
@@ -366,9 +372,8 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf config.programs.opencode.enable {
-      xdg.configFile = filesFor "opencode";
+      xdg.configFile = filesFor "opencode" // skillFilesFor "opencode" "opencode/skills";
       programs.opencode = {
-        skills = skillsFor "opencode";
         commands = commandsFor "opencode";
         settings = {
           lsp = lib.mapAttrs toOpencodeLsp (enabledLspFor "opencode");
@@ -378,8 +383,8 @@ in
     })
 
     (lib.mkIf config.programs.claude-code.enable {
+      home.file = skillFilesFor "claude-code" "${config.programs.claude-code.configDir}/skills";
       programs.claude-code = {
-        skills = skillsFor "claude-code";
         commands = commandsFor "claude-code";
         lspServers = lib.mapAttrs toClaudeCodeLsp (enabledLspFor "claude-code");
         plugins = pluginPathsFor "claude-code";
