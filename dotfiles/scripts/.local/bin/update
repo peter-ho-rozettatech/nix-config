@@ -352,7 +352,7 @@ function activate_selected_target() {
             home-manager switch --flake "$flake_ref" --accept-flake-config
             ;;
         darwin-rebuild)
-            sudo darwin-rebuild switch --flake "$flake_ref" --accept-flake-config
+            sudo darwin-rebuild switch --flake "$flake_ref"
             ;;
         nixos-rebuild)
             sudo nixos-rebuild switch --flake "$flake_ref" --accept-flake-config
