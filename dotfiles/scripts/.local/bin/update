@@ -5,6 +5,13 @@ set -euo pipefail
 NIX_CONFIG_PATH="${HOME}/.nix-config"
 ARCH=""
 OS=""
+HOST_ARG=""
+PRINT_ACTIVATION_TARGET=false
+ACTIVATION_TARGETS_JSON=""
+SELECTED_TARGET_NAME=""
+SELECTED_KIND=""
+SELECTED_FLAKE_TARGET=""
+TOOL_ARGS=()
 
 # Color definitions
 RED='\033[0;31m'
@@ -46,6 +53,44 @@ function echo_warning() {
 
 function echo_error() {
     echo -e "${RED}❌ ${1}${NC}"
+}
+
+function parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --host)
+                if [[ $# -lt 2 || -z ${2:-} ]]; then
+                    echo_error "--host requires a host name"
+                    exit 1
+                fi
+                HOST_ARG="$2"
+                shift 2
+                ;;
+            --print-activation-target)
+                PRINT_ACTIVATION_TARGET=true
+                shift
+                ;;
+            -h | --help)
+                TOOL_ARGS+=("help")
+                shift
+                ;;
+            --)
+                shift
+                while [[ $# -gt 0 ]]; do
+                    TOOL_ARGS+=("$1")
+                    shift
+                done
+                ;;
+            *)
+                TOOL_ARGS+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if [[ ${#TOOL_ARGS[@]} -eq 0 ]]; then
+        TOOL_ARGS=("all")
+    fi
 }
 
 function run_and_capture() {
@@ -132,6 +177,192 @@ function detect_system() {
 }
 
 detect_system
+
+function jq_query() {
+    if command -v jq > /dev/null 2>&1; then
+        jq "$@"
+    else
+        nix run nixpkgs#jq -- "$@"
+    fi
+}
+
+function activation_platform() {
+    case "$OS" in
+        ubuntu | debian)
+            echo "home-manager"
+            ;;
+        darwin)
+            echo "darwin"
+            ;;
+        nixos)
+            echo "nixos"
+            ;;
+        *)
+            echo_error "Unsupported system configuration: $OS"
+            exit 1
+            ;;
+    esac
+}
+
+function activation_system() {
+    if [[ $OS == "darwin" ]]; then
+        echo "${ARCH}-darwin"
+    else
+        echo "${ARCH}-linux"
+    fi
+}
+
+function load_activation_targets() {
+    if ! ACTIVATION_TARGETS_JSON=$(nix eval --json "${NIX_CONFIG_PATH}#activationTargets" --accept-flake-config); then
+        echo_error "Failed to evaluate activationTargets from $NIX_CONFIG_PATH"
+        exit 1
+    fi
+}
+
+function target_exists() {
+    local target_name="$1"
+
+    printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -e --arg target "$target_name" 'has($target)' > /dev/null
+}
+
+function target_is_compatible() {
+    local target_name="$1"
+    local platform="$2"
+    local system="$3"
+
+    printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -e \
+        --arg target "$target_name" \
+        --arg platform "$platform" \
+        --arg system "$system" \
+        '.[$target].platform == $platform and .[$target].system == $system' > /dev/null
+}
+
+function compatible_target_names() {
+    local platform="$1"
+    local system="$2"
+
+    printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -r \
+        --arg platform "$platform" \
+        --arg system "$system" \
+        'to_entries | map(select(.value.platform == $platform and .value.system == $system)) | sort_by(.key) | .[].key'
+}
+
+function select_interactive_target() {
+    local platform="$1"
+    local system="$2"
+    local compatible_names=()
+    local name=""
+    local choice=""
+    local index=0
+
+    while IFS= read -r name; do
+        if [[ -n $name ]]; then
+            compatible_names+=("$name")
+        fi
+    done < <(compatible_target_names "$platform" "$system")
+
+    if [[ ${#compatible_names[@]} -eq 0 ]]; then
+        echo_error "No activation targets are compatible with ${system} ${platform}"
+        exit 1
+    fi
+
+    if [[ ! -r /dev/tty ]]; then
+        echo_error "No matching activation target found. Pass --host <name> to choose one explicitly."
+        exit 1
+    fi
+
+    echo_warning "No matching activation target found for hostname $(hostname -s 2> /dev/null || hostname)."
+    echo_info "Choose a compatible activation target:"
+    for index in "${!compatible_names[@]}"; do
+        printf '  %d) %s\n' "$((index + 1))" "${compatible_names[$index]}" > /dev/tty
+    done
+
+    while true; do
+        printf 'Select activation target [1-%d]: ' "${#compatible_names[@]}" > /dev/tty
+        if ! IFS= read -r choice < /dev/tty; then
+            echo_error "Failed to read activation target selection"
+            exit 1
+        fi
+
+        if [[ $choice =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#compatible_names[@]})); then
+            SELECTED_TARGET_NAME="${compatible_names[$((choice - 1))]}"
+            return 0
+        fi
+
+        echo_error "Invalid selection: $choice"
+    done
+}
+
+function set_selected_target_fields() {
+    SELECTED_KIND=$(printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -r --arg target "$SELECTED_TARGET_NAME" '.[$target].kind')
+    SELECTED_FLAKE_TARGET=$(printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -r --arg target "$SELECTED_TARGET_NAME" '.[$target].flakeTarget')
+}
+
+function resolve_activation_target() {
+    local platform=""
+    local system=""
+    local short_hostname=""
+
+    load_activation_targets
+    platform=$(activation_platform)
+    system=$(activation_system)
+
+    if [[ -n $HOST_ARG ]]; then
+        if ! target_exists "$HOST_ARG"; then
+            echo_error "Unknown activation target: $HOST_ARG"
+            exit 1
+        fi
+
+        if ! target_is_compatible "$HOST_ARG" "$platform" "$system"; then
+            echo_error "Activation target $HOST_ARG is not compatible with detected ${system} ${platform}"
+            exit 1
+        fi
+
+        SELECTED_TARGET_NAME="$HOST_ARG"
+    else
+        short_hostname=$(hostname -s 2> /dev/null || hostname)
+        if target_exists "$short_hostname" && target_is_compatible "$short_hostname" "$platform" "$system"; then
+            SELECTED_TARGET_NAME="$short_hostname"
+        else
+            select_interactive_target "$platform" "$system"
+        fi
+    fi
+
+    set_selected_target_fields
+}
+
+function activation_flake_ref() {
+    local flake_target="$1"
+
+    if [[ $flake_target == ".#"* ]]; then
+        echo "${NIX_CONFIG_PATH}#${flake_target#.#}"
+    else
+        echo "$flake_target"
+    fi
+}
+
+function activate_selected_target() {
+    local flake_ref=""
+
+    flake_ref=$(activation_flake_ref "$SELECTED_FLAKE_TARGET")
+    echo_info "Activating $SELECTED_TARGET_NAME with $SELECTED_KIND ($SELECTED_FLAKE_TARGET)..."
+
+    case "$SELECTED_KIND" in
+        home-manager)
+            home-manager switch --flake "$flake_ref" --accept-flake-config
+            ;;
+        darwin-rebuild)
+            sudo darwin-rebuild switch --flake "$flake_ref" --accept-flake-config
+            ;;
+        nixos-rebuild)
+            sudo nixos-rebuild switch --flake "$flake_ref" --accept-flake-config
+            ;;
+        *)
+            echo_error "Unsupported activation kind: $SELECTED_KIND"
+            exit 1
+            ;;
+    esac
+}
 
 function pushd() {
     command pushd "$@" > /dev/null
@@ -235,6 +466,11 @@ function tool:nvim:restore {
 }
 
 function tool:nix {
+    if [[ $PRINT_ACTIVATION_TARGET == true ]]; then
+        tool:nix:rebuild
+        return
+    fi
+
     echo_header "Updating nix"
     tool:nix:flake
     tool:pkgs:update "$@"
@@ -260,26 +496,14 @@ function tool:nix:clean {
 }
 
 function tool:nix:rebuild {
-    echo_header "Rebuilding nix config"
+    resolve_activation_target
+    if [[ $PRINT_ACTIVATION_TARGET == true ]]; then
+        printf '%s\n' "$SELECTED_FLAKE_TARGET"
+        return
+    fi
 
-    case "$OS" in
-        ubuntu | debian)
-            echo_info "Detected $OS, using home-manager switch..."
-            home-manager switch --flake "$NIX_CONFIG_PATH"
-            ;;
-        darwin)
-            echo_info "Detected macOS, using darwin-rebuild..."
-            sudo darwin-rebuild switch --flake "$NIX_CONFIG_PATH"
-            ;;
-        nixos)
-            echo_info "Detected NixOS, using nixos-rebuild..."
-            sudo nixos-rebuild switch --flake "$NIX_CONFIG_PATH"
-            ;;
-        *)
-            echo_error "Unsupported system configuration: $OS"
-            exit 1
-            ;;
-    esac
+    echo_header "Rebuilding nix config"
+    activate_selected_target
     tool:fish
     echo_success "Nix config rebuilt"
 }
@@ -679,6 +903,10 @@ function tool:list {
 function tool:help {
     echo_header "Update Script Help"
     printf "${BOLD}Usage:${NC} %s [TOOL] [ARGS]\n\n" "$0"
+    echo -e "${BOLD}Global Options:${NC}"
+    echo "  --host NAME                 Activate the named host target for rebuilds"
+    echo "  --print-activation-target   Print the selected explicit rebuild target and exit"
+    echo
     echo -e "${BOLD}Available Tools:${NC}"
 
     local tools=($(compgen -A function | sed -rn 's/tool:(.*)/\1/p'))
@@ -702,4 +930,5 @@ function tool:help {
     done
 }
 
-"tool:${@:-all}"
+parse_args "$@"
+"tool:${TOOL_ARGS[@]}"

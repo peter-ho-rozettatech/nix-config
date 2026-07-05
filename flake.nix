@@ -73,27 +73,8 @@
       inherit (self) outputs;
       lib = nixpkgs.lib;
       packageSets = import ./pkgs/package-sets.nix { inherit inputs; };
-      rawHosts = import ./hosts.nix;
-
-      defaultHomePath =
-        host:
-        if host ? homePath then
-          host.homePath
-        else if host.platform == "darwin" then
-          "/Users/${host.user}"
-        else
-          "/home/${host.user}";
-
-      normalizeHost =
-        outputName: host:
-        host
-        // {
-          name = host.name or outputName;
-          homePath = defaultHomePath host;
-        };
-
-      hosts = lib.mapAttrs normalizeHost rawHosts;
-      hostsFor = platform: lib.filterAttrs (_: host: host.platform == platform) hosts;
+      hostRegistry = import ./host-registry.nix { inherit lib; };
+      hostsForOutput = hostRegistry.hostsForOutput;
 
       hostSystemModule = host: {
         user = lib.mkForce host.user;
@@ -109,6 +90,7 @@
             outputs
             host
             ;
+          inherit (host) homeModule;
         };
         modules = [
           (hostSystemModule host)
@@ -139,6 +121,7 @@
       overlays = packageSets.overlays;
       systemModules = import ./modules/system;
       homeManagerModules = import ./modules/home-manager;
+      activationTargets = hostRegistry.activationTargets;
 
       # Expose packages for nix-update
       packages = nixpkgs.lib.genAttrs packageSets.supportedSystems packageSets.packagesFor;
@@ -149,12 +132,12 @@
 
       nixosConfigurations = lib.mapAttrs (
         _: host: nixpkgs.lib.nixosSystem (getSystemConfiguration host)
-      ) (hostsFor "nixos");
+      ) (hostsForOutput "nixosConfigurations");
 
       darwinConfigurations = lib.mapAttrs (
         _: host: nix-darwin.lib.darwinSystem (getSystemConfiguration host)
-      ) (hostsFor "darwin");
+      ) (hostsForOutput "darwinConfigurations");
 
-      homeConfigurations = lib.mapAttrs (_: host: getHomeConfiguration host) (hostsFor "home-manager");
+      homeConfigurations = lib.mapAttrs (_: host: getHomeConfiguration host) (hostsForOutput "homeConfigurations");
     };
 }

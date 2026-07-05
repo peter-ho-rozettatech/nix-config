@@ -12,6 +12,13 @@ NC='\033[0m' # No Color
 # Global variables for system info
 ARCH=""
 OS=""
+CONFIG_DIR="${NIX_CONFIG_PATH:-$HOME/.nix-config}"
+HOST_ARG=""
+PRINT_ACTIVATION_TARGET=false
+ACTIVATION_TARGETS_JSON=""
+SELECTED_TARGET_NAME=""
+SELECTED_KIND=""
+SELECTED_FLAKE_TARGET=""
 
 # Logging functions
 function log_info() {
@@ -28,6 +35,53 @@ function log_warn() {
 
 function log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+function usage() {
+    cat <<EOF
+Usage: $0 [--host NAME] [--print-activation-target]
+
+Options:
+  --host NAME                 Activate the named host target instead of matching hostname
+  --print-activation-target   Print the selected explicit flake target and exit
+  -h, --help                  Show this help
+EOF
+}
+
+function parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --host)
+                if [[ $# -lt 2 || -z ${2:-} ]]; then
+                    log_error "--host requires a host name"
+                    exit 1
+                fi
+                HOST_ARG="$2"
+                shift 2
+                ;;
+            --print-activation-target)
+                PRINT_ACTIVATION_TARGET=true
+                shift
+                ;;
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            --)
+                shift
+                if [[ $# -gt 0 ]]; then
+                    log_error "Unexpected arguments: $*"
+                    usage
+                    exit 1
+                fi
+                ;;
+            *)
+                log_error "Unknown argument: $1"
+                usage
+                exit 1
+                ;;
+        esac
+    done
 }
 
 # Detect system architecture and OS
@@ -64,6 +118,189 @@ function detect_system() {
 # Check if command exists
 function command_exists() {
     command -v "$1" > /dev/null 2>&1
+}
+
+function enter_existing_config() {
+    if [[ -f flake.nix && -f hosts.nix ]]; then
+        CONFIG_DIR=$(pwd)
+        return 0
+    fi
+
+    if [[ -d $CONFIG_DIR ]]; then
+        cd "$CONFIG_DIR"
+        return 0
+    fi
+
+    log_error "Configuration directory not found at $CONFIG_DIR"
+    exit 1
+}
+
+function jq_query() {
+    if command_exists jq; then
+        jq "$@"
+    else
+        nix run nixpkgs#jq -- "$@"
+    fi
+}
+
+function activation_platform() {
+    case "$OS" in
+        ubuntu | debian)
+            echo "home-manager"
+            ;;
+        darwin)
+            echo "darwin"
+            ;;
+        nixos)
+            echo "nixos"
+            ;;
+        *)
+            log_error "Unsupported system configuration: $OS"
+            exit 1
+            ;;
+    esac
+}
+
+function activation_system() {
+    if [[ $OS == "darwin" ]]; then
+        echo "${ARCH}-darwin"
+    else
+        echo "${ARCH}-linux"
+    fi
+}
+
+function load_activation_targets() {
+    if ! command_exists nix; then
+        log_error "Nix is required to read activation targets"
+        exit 1
+    fi
+
+    if ! ACTIVATION_TARGETS_JSON=$(nix eval --json "${CONFIG_DIR}#activationTargets" --accept-flake-config); then
+        log_error "Failed to evaluate activationTargets from $CONFIG_DIR"
+        exit 1
+    fi
+}
+
+function target_exists() {
+    local target_name="$1"
+
+    printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -e --arg target "$target_name" 'has($target)' > /dev/null
+}
+
+function target_is_compatible() {
+    local target_name="$1"
+    local platform="$2"
+    local system="$3"
+
+    printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -e \
+        --arg target "$target_name" \
+        --arg platform "$platform" \
+        --arg system "$system" \
+        '.[$target].platform == $platform and .[$target].system == $system' > /dev/null
+}
+
+function compatible_target_names() {
+    local platform="$1"
+    local system="$2"
+
+    printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -r \
+        --arg platform "$platform" \
+        --arg system "$system" \
+        'to_entries | map(select(.value.platform == $platform and .value.system == $system)) | sort_by(.key) | .[].key'
+}
+
+function select_interactive_target() {
+    local platform="$1"
+    local system="$2"
+    local compatible_names=()
+    local name=""
+    local choice=""
+    local index=0
+
+    while IFS= read -r name; do
+        if [[ -n $name ]]; then
+            compatible_names+=("$name")
+        fi
+    done < <(compatible_target_names "$platform" "$system")
+
+    if [[ ${#compatible_names[@]} -eq 0 ]]; then
+        log_error "No activation targets are compatible with ${system} ${platform}"
+        exit 1
+    fi
+
+    if [[ ! -r /dev/tty ]]; then
+        log_error "No matching activation target found. Pass --host <name> to choose one explicitly."
+        exit 1
+    fi
+
+    log_warn "No matching activation target found for hostname $(hostname -s 2> /dev/null || hostname)."
+    log_info "Choose a compatible activation target:"
+    for index in "${!compatible_names[@]}"; do
+        printf '  %d) %s\n' "$((index + 1))" "${compatible_names[$index]}" > /dev/tty
+    done
+
+    while true; do
+        printf 'Select activation target [1-%d]: ' "${#compatible_names[@]}" > /dev/tty
+        if ! IFS= read -r choice < /dev/tty; then
+            log_error "Failed to read activation target selection"
+            exit 1
+        fi
+
+        if [[ $choice =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#compatible_names[@]})); then
+            SELECTED_TARGET_NAME="${compatible_names[$((choice - 1))]}"
+            return 0
+        fi
+
+        log_error "Invalid selection: $choice"
+    done
+}
+
+function set_selected_target_fields() {
+    SELECTED_KIND=$(printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -r --arg target "$SELECTED_TARGET_NAME" '.[$target].kind')
+    SELECTED_FLAKE_TARGET=$(printf '%s' "$ACTIVATION_TARGETS_JSON" | jq_query -r --arg target "$SELECTED_TARGET_NAME" '.[$target].flakeTarget')
+}
+
+function resolve_activation_target() {
+    local platform=""
+    local system=""
+    local short_hostname=""
+
+    load_activation_targets
+    platform=$(activation_platform)
+    system=$(activation_system)
+
+    if [[ -n $HOST_ARG ]]; then
+        if ! target_exists "$HOST_ARG"; then
+            log_error "Unknown activation target: $HOST_ARG"
+            exit 1
+        fi
+
+        if ! target_is_compatible "$HOST_ARG" "$platform" "$system"; then
+            log_error "Activation target $HOST_ARG is not compatible with detected ${system} ${platform}"
+            exit 1
+        fi
+
+        SELECTED_TARGET_NAME="$HOST_ARG"
+    else
+        short_hostname=$(hostname -s 2> /dev/null || hostname)
+        if target_exists "$short_hostname" && target_is_compatible "$short_hostname" "$platform" "$system"; then
+            SELECTED_TARGET_NAME="$short_hostname"
+        else
+            select_interactive_target "$platform" "$system"
+        fi
+    fi
+
+    set_selected_target_fields
+}
+
+function activation_flake_ref() {
+    local flake_target="$1"
+
+    if [[ $flake_target == ".#"* ]]; then
+        echo "${CONFIG_DIR}#${flake_target#.#}"
+    else
+        echo "$flake_target"
+    fi
 }
 
 # Install git on Debian/Ubuntu systems
@@ -105,55 +342,49 @@ function install_nix() {
 
 # Clone the nix-config repository
 function clone_config() {
-    local config_dir="$HOME/.nix-config"
-
-    if [ -d "$config_dir" ]; then
-        log_info "Configuration directory already exists at $config_dir"
-        cd "$config_dir"
+    if [ -d "$CONFIG_DIR" ]; then
+        log_info "Configuration directory already exists at $CONFIG_DIR"
+        cd "$CONFIG_DIR"
         if command_exists git && [ -d ".git" ]; then
             log_info "Updating existing repository..."
             git pull origin main || log_warn "Failed to update repository"
         fi
     else
         log_info "Cloning nix-config repository..."
-        git clone https://github.com/petertriho/nix-config.git "$config_dir"
-        cd "$config_dir"
+        git clone https://github.com/petertriho/nix-config.git "$CONFIG_DIR"
+        cd "$CONFIG_DIR"
         log_success "Repository cloned successfully"
     fi
 }
 
-# Setup for Ubuntu/Debian systems
-function setup_linux_home_manager() {
-    local distro="$1"
-    log_info "Setting up $distro system..."
+# Activate the selected normalized host target
+function activate_selected_target() {
+    local flake_ref=""
 
-    # Install home-manager and apply configuration
-    log_info "Installing home-manager configuration..."
-    nix run home-manager/master -- switch --flake ~/.nix-config --accept-flake-config
+    flake_ref=$(activation_flake_ref "$SELECTED_FLAKE_TARGET")
+    log_info "Activating $SELECTED_TARGET_NAME with $SELECTED_KIND ($SELECTED_FLAKE_TARGET)..."
 
-    log_success "$distro setup completed"
-}
+    case "$SELECTED_KIND" in
+        home-manager)
+            if command_exists home-manager; then
+                home-manager switch --flake "$flake_ref" --accept-flake-config
+            else
+                nix run home-manager/master -- switch --flake "$flake_ref" --accept-flake-config
+            fi
+            ;;
+        darwin-rebuild)
+            sudo nix run nix-darwin/master -- darwin-rebuild switch --flake "$flake_ref" --accept-flake-config
+            ;;
+        nixos-rebuild)
+            sudo nixos-rebuild switch --flake "$flake_ref" --accept-flake-config
+            ;;
+        *)
+            log_error "Unsupported activation kind: $SELECTED_KIND"
+            exit 1
+            ;;
+    esac
 
-# Setup for macOS systems
-function setup_darwin() {
-    log_info "Setting up macOS system..."
-
-    # Apply nix-darwin configuration
-    log_info "Applying nix-darwin configuration..."
-    sudo nix run nix-darwin/master -- darwin-rebuild switch --flake ~/.nix-config --accept-flake-config
-
-    log_success "macOS setup completed"
-}
-
-# Setup for NixOS systems
-function setup_nixos() {
-    log_info "Setting up NixOS system..."
-
-    # Apply NixOS configuration
-    log_info "Applying NixOS configuration..."
-    sudo nixos-rebuild switch --flake ~/.nix-config --accept-flake-config
-
-    log_success "NixOS setup completed"
+    log_success "Activation target $SELECTED_TARGET_NAME completed"
 }
 
 # Setup GitHub authentication and SSH remote
@@ -178,6 +409,16 @@ function setup_github() {
 }
 
 function main() {
+    parse_args "$@"
+
+    if [[ $PRINT_ACTIVATION_TARGET == true ]]; then
+        detect_system
+        enter_existing_config
+        resolve_activation_target
+        printf '%s\n' "$SELECTED_FLAKE_TARGET"
+        return 0
+    fi
+
     log_info "Starting Nix configuration bootstrap..."
 
     detect_system
@@ -189,25 +430,8 @@ function main() {
 
     clone_config
 
-    # Setup based on OS
-    case "$OS" in
-        ubuntu)
-            setup_linux_home_manager "Ubuntu"
-            ;;
-        debian)
-            setup_linux_home_manager "Debian"
-            ;;
-        darwin)
-            setup_darwin
-            ;;
-        nixos)
-            setup_nixos
-            ;;
-        *)
-            log_error "Unsupported system configuration: $OS"
-            exit 1
-            ;;
-    esac
+    resolve_activation_target
+    activate_selected_target
 
     setup_github
 

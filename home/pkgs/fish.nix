@@ -129,11 +129,7 @@
       ndr = "nix-direnv-reload";
       nfu = "nix flake update";
       nr = "nix run nixpkgs#";
-      nrs = lib.strings.concatStringsSep " " [
-        "sudo"
-        (if pkgs.stdenv.isDarwin then "darwin-rebuild" else "nixos-rebuild")
-        "switch --flake ~/.nix-config"
-      ];
+      nrs = "update nix:rebuild";
       ns = "nix search nixpkgs";
       oc = "opencode";
       ocb = "set -x OPENCODE_AGENT_BUILD_MODEL (models-dev)";

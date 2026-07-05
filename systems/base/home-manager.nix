@@ -2,16 +2,10 @@
   inputs,
   outputs,
   config,
+  homeModule ? throw "systems/base/home-manager.nix requires a normalized host homeModule",
   host ? null,
   ...
 }:
-let
-  homeModule =
-    if host != null && host ? homeModule then
-      host.homeModule
-    else
-      throw "systems/base/home-manager.nix requires a host registry entry with homeModule";
-in
 {
   home-manager = {
     useGlobalPkgs = true;
