@@ -11,9 +11,12 @@ OverlayHost {
     property QtObject colors
     property QtObject fontsConfig
     property QtObject popupsConfig
+    property QtObject overlayConfig
     property var hiddenIds: []
     property var idMap: ({})
     property var overflowNames: ({})
+    animationDurationMs: overlayConfig ? overlayConfig.animationDurationMs : 180
+    closeGraceMs: overlayConfig ? overlayConfig.closeGraceMs : 220
     screen: barWindow ? barWindow.screen : null
     open: module && module.expanded
     onCloseRequested: if (module)
@@ -39,12 +42,12 @@ OverlayHost {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 180
+                duration: trayPopup.animationDurationMs
             }
         }
         Behavior on scale {
             NumberAnimation {
-                duration: 180
+                duration: trayPopup.animationDurationMs
             }
         }
 

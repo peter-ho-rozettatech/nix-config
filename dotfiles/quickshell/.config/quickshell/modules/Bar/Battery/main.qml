@@ -22,6 +22,7 @@ BaseModule {
     property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject thresholdsConfig: parent.thresholdsConfig
     property QtObject popupsConfig: parent.popupsConfig
+    property QtObject overlayConfig: parent.overlayConfig
 
     hoverHighlight: true
 
@@ -360,6 +361,7 @@ BaseModule {
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+        overlayConfig: root.overlayConfig
     }
 
     PopupAnchor {

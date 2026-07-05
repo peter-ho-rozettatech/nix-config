@@ -217,6 +217,12 @@ QtObject {
         readonly property int trayIconOffset: 2
     }
 
+    // Overlay animations
+    readonly property QtObject overlay: QtObject {
+        readonly property int animationDurationMs: 90
+        readonly property int closeGraceMs: 110
+    }
+
     // Notifications
     readonly property QtObject notifications: QtObject {
         readonly property int topMargin: bar.height + 12

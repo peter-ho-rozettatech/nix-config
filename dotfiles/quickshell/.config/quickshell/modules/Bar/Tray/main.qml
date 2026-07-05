@@ -13,6 +13,7 @@ BaseModule {
     readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property QtObject popupsConfig: parent.popupsConfig
+    property QtObject overlayConfig: parent.overlayConfig
     property var hiddenIds: []
     property var idMap: ({})
     property var overflowNames: ({})
@@ -33,6 +34,7 @@ BaseModule {
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+        overlayConfig: root.overlayConfig
         hiddenIds: root.hiddenIds
         idMap: root.idMap
         overflowNames: root.overflowNames

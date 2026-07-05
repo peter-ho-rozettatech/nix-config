@@ -27,6 +27,7 @@ PanelWindow {
     property QtObject stepsConfig
     property QtObject fontsConfig
     property QtObject popupsConfig
+    property QtObject overlayConfig
     required property var notificationsManager
     property var codexBarService
     property var workspaceService
@@ -108,6 +109,7 @@ PanelWindow {
                 intervalsConfig: root.intervalsConfig
                 fontsConfig: root.fontsConfig
                 popupsConfig: root.popupsConfig
+                overlayConfig: root.overlayConfig
             }
 
             // Right modules
@@ -188,6 +190,7 @@ PanelWindow {
                     moduleConfig: root.moduleConfig
                     fontsConfig: root.fontsConfig
                     popupsConfig: root.popupsConfig
+                    overlayConfig: root.overlayConfig
                 }
 
                 Caffeine {
@@ -201,6 +204,7 @@ PanelWindow {
                     moduleConfig: root.moduleConfig
                     fontsConfig: root.fontsConfig
                     popupsConfig: root.popupsConfig
+                    overlayConfig: root.overlayConfig
                 }
 
                 Stats {
@@ -216,6 +220,7 @@ PanelWindow {
                     thresholdsConfig: root.thresholdsConfig
                     fontsConfig: root.fontsConfig
                     popupsConfig: root.popupsConfig
+                    overlayConfig: root.overlayConfig
                 }
 
                 Backlight {
@@ -254,6 +259,7 @@ PanelWindow {
                     thresholdsConfig: root.thresholdsConfig
                     fontsConfig: root.fontsConfig
                     popupsConfig: root.popupsConfig
+                    overlayConfig: root.overlayConfig
                 }
 
                 Bluetooth {
@@ -267,6 +273,7 @@ PanelWindow {
                     moduleConfig: root.moduleConfig
                     fontsConfig: root.fontsConfig
                     popupsConfig: root.popupsConfig
+                    overlayConfig: root.overlayConfig
                 }
 
                 Network {

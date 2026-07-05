@@ -14,6 +14,7 @@ Item {
     required property QtObject colors
     required property QtObject fontsConfig
     required property QtObject codexbarConfig
+    property QtObject overlayConfig
 
     // Normalized rows, one per provider/account segment (see codexbar.js).
     ListModel {
@@ -135,6 +136,7 @@ Item {
         topMargin: codexbarConfig.topMargin
         colors: root.colors
         fontsConfig: root.fontsConfig
+        overlayConfig: root.overlayConfig
         onCloseRequested: root.hidePanel()
         onRefreshRequested: root.refresh()
     }

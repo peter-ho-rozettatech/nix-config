@@ -18,6 +18,10 @@ OverlayHost {
     property bool busy
     required property QtObject colors
     required property QtObject fontsConfig
+    property QtObject overlayConfig
+
+    animationDurationMs: overlayConfig ? overlayConfig.animationDurationMs : 180
+    closeGraceMs: overlayConfig ? overlayConfig.closeGraceMs : 220
 
     signal refreshRequested
 
@@ -53,10 +57,10 @@ OverlayHost {
         transformOrigin: Item.TopRight
 
         Behavior on opacity {
-            NumberAnimation { duration: 180; easing.type: root.open ? Easing.OutCubic : Easing.InCubic }
+            NumberAnimation { duration: root.animationDurationMs; easing.type: root.open ? Easing.OutCubic : Easing.InCubic }
         }
         Behavior on scale {
-            NumberAnimation { duration: 180; easing.type: root.open ? Easing.OutCubic : Easing.InCubic }
+            NumberAnimation { duration: root.animationDurationMs; easing.type: root.open ? Easing.OutCubic : Easing.InCubic }
         }
 
         ColumnLayout {

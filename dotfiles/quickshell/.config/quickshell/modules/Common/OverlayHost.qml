@@ -16,6 +16,8 @@ PanelWindow {
     id: root
 
     property bool open: false
+    property int animationDurationMs: 180
+    property int closeGraceMs: 220
     signal closeRequested
     signal keyPressed(var event)
 
@@ -39,7 +41,7 @@ PanelWindow {
 
     Timer {
         id: closeGraceTimer
-        interval: 220
+        interval: root.closeGraceMs
     }
 
     // Invisible backdrop: Esc or any click outside the drawer closes.

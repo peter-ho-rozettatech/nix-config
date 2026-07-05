@@ -9,6 +9,9 @@ OverlayHost {
     property QtObject colors
     property QtObject fontsConfig
     property QtObject popupsConfig
+    property QtObject overlayConfig
+    animationDurationMs: overlayConfig ? overlayConfig.animationDurationMs : 180
+    closeGraceMs: overlayConfig ? overlayConfig.closeGraceMs : 220
     screen: barWindow ? barWindow.screen : null
     open: module && module.showPopup
     onCloseRequested: if (module)
@@ -37,12 +40,12 @@ OverlayHost {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 180
+                duration: batteryPopup.animationDurationMs
             }
         }
         Behavior on scale {
             NumberAnimation {
-                duration: 180
+                duration: batteryPopup.animationDurationMs
             }
         }
 

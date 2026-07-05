@@ -17,6 +17,7 @@ BaseModule {
     property bool inOverflow: false
     property var overflowAnchorModule: null
     property QtObject popupsConfig: parent.popupsConfig
+    property QtObject overlayConfig: parent.overlayConfig
 
     text: {
         if (!active)
@@ -69,6 +70,7 @@ BaseModule {
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+        overlayConfig: root.overlayConfig
     }
 
     PopupAnchor {

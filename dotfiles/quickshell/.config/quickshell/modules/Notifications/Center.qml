@@ -12,6 +12,10 @@ OverlayHost {
     required property QtObject colors
     required property QtObject fontsConfig
     required property QtObject notificationsConfig
+    property QtObject overlayConfig
+
+    animationDurationMs: overlayConfig ? overlayConfig.animationDurationMs : 180
+    closeGraceMs: overlayConfig ? overlayConfig.closeGraceMs : 220
 
     property real clock
     readonly property int maxPanelHeight: Math.max(1, Screen.height - notificationsConfig.topMargin - notificationsConfig.bottomMargin)
@@ -63,10 +67,10 @@ OverlayHost {
         transformOrigin: Item.TopRight
 
         Behavior on opacity {
-            NumberAnimation { duration: 180; easing.type: open ? Easing.OutCubic : Easing.InCubic }
+            NumberAnimation { duration: root.animationDurationMs; easing.type: open ? Easing.OutCubic : Easing.InCubic }
         }
         Behavior on scale {
-            NumberAnimation { duration: 180; easing.type: open ? Easing.OutCubic : Easing.InCubic }
+            NumberAnimation { duration: root.animationDurationMs; easing.type: open ? Easing.OutCubic : Easing.InCubic }
         }
 
         ColumnLayout {

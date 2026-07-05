@@ -9,6 +9,7 @@ BaseModule {
     hoverHighlight: true
     property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject popupsConfig: parent.popupsConfig
+    property QtObject overlayConfig: parent.overlayConfig
     property var barWindow: null
 
     // Calendar popup state
@@ -96,6 +97,7 @@ BaseModule {
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+        overlayConfig: root.overlayConfig
     }
 
     PopupAnchor {

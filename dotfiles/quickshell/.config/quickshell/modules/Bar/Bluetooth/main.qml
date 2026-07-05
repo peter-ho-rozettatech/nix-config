@@ -25,6 +25,7 @@ BaseModule {
     property bool inOverflow: false
     property var overflowAnchorModule: null
     property QtObject popupsConfig: parent.popupsConfig
+    property QtObject overlayConfig: parent.overlayConfig
     property string icon: !available ? "󰂲" : !enabled ? "󰂲" : connectedDevices.length > 0 ? "󰂱" : "󰂯"
 
     hoverEnabled: true
@@ -72,6 +73,7 @@ BaseModule {
         colors: root.colors
         fontsConfig: root.fontsConfig
         popupsConfig: root.popupsConfig
+        overlayConfig: root.overlayConfig
     }
 
     PopupAnchor {

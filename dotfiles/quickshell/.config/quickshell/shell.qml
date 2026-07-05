@@ -26,6 +26,7 @@ ShellRoot {
         colors: config.colors
         fontsConfig: config.fonts
         notificationsConfig: config.notifications
+        overlayConfig: config.overlay
     }
 
     // CodexBar usage service (one instance; owns the polling process + panel).
@@ -38,6 +39,7 @@ ShellRoot {
         colors: config.colors
         fontsConfig: config.fonts
         codexbarConfig: config.codexbar
+        overlayConfig: config.overlay
     }
 
     WorkspaceFeature.WorkspaceService {
@@ -65,6 +67,7 @@ ShellRoot {
                 thresholdsConfig: config.thresholds
                 stepsConfig: config.steps
                 popupsConfig: config.popups
+                overlayConfig: config.overlay
                 fontsConfig: config.fonts
                 notificationsManager: notifications
                 codexBarService: codexBarSvc

@@ -8,6 +8,7 @@ Item {
     required property QtObject colors
     required property QtObject fontsConfig
     required property QtObject notificationsConfig
+    property QtObject overlayConfig
 
     property var notifications: []
     property var notificationMap: ({})
@@ -232,6 +233,7 @@ Item {
         colors: root.colors
         fontsConfig: root.fontsConfig
         notificationsConfig: root.notificationsConfig
+        overlayConfig: root.overlayConfig
         onCloseRequested: root.hideCenter()
         onClearRequested: root.clearAll()
         onDismissRequested: function (entry) {
