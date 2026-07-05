@@ -9,25 +9,47 @@ let
   skillsDir = ../../../dotfiles/agents/.agents/skills;
   skillEntries = builtins.readDir skillsDir;
   availableSkills = lib.filterAttrs (_: type: type == "directory") skillEntries;
+  skillCommands = lib.mapAttrs' (
+    name: _:
+    lib.nameValuePair name ''
+      ---
+      description: Run the ${name} skill
+      ---
+      Load the `${name}` skill with the `skill` tool, then follow its instructions for this request.
+
+      If no request is provided, ask for the missing input required by the skill.
+
+      User request:
+      $ARGUMENTS
+    ''
+  ) availableSkills;
 in
 {
   options.programs.agents = {
     skills.enable = lib.mkEnableOption "agents skills";
   };
 
-  config = lib.mkIf cfg.skills.enable {
-    home.file =
-      lib.mapAttrs' (
-        name: _:
-        lib.nameValuePair ".agents/skills/${name}" {
-          source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
-        }
-      ) availableSkills
-      // lib.mapAttrs' (
-        name: _:
-        lib.nameValuePair ".claude/skills/${name}" {
-          source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
-        }
-      ) availableSkills;
-  };
+  config = lib.mkIf cfg.skills.enable (
+    lib.mkMerge [
+      {
+        home.file =
+          lib.mapAttrs' (
+            name: _:
+            lib.nameValuePair ".agents/skills/${name}" {
+              source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
+            }
+          ) availableSkills
+          // lib.mapAttrs' (
+            name: _:
+            lib.nameValuePair ".claude/skills/${name}" {
+              source = config.lib.meta.mkDotfilesSymlink "agents/.agents/skills/${name}";
+            }
+          ) availableSkills;
+      }
+
+      (lib.mkIf config.programs.opencode.enable {
+        programs.opencode.commands = skillCommands;
+      })
+    ]
+  );
 }
