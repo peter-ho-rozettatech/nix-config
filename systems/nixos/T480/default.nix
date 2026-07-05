@@ -2,7 +2,7 @@
 {
   imports = [
     ../desktop
-    ./fingerprint.nix
+    # ./fingerprint.nix
     ./hardware-configuration.nix
     ./nvidia.nix
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
