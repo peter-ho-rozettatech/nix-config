@@ -27,9 +27,9 @@ PanelWindow {
     property QtObject stepsConfig
     property QtObject fontsConfig
     property QtObject popupsConfig
-    property var windowIcons
     required property var notificationsManager
     property var codexBarService
+    property var workspaceService
 
     Rectangle {
         anchors.fill: parent
@@ -81,7 +81,8 @@ PanelWindow {
                 colors: root.colors
                 workspacesConfig: root.workspacesConfig
                 fontsConfig: root.fontsConfig
-                windowIcons: root.windowIcons
+                outputName: root.screen ? root.screen.name : ""
+                workspaceService: root.workspaceService
             }
 
             WindowTitle {
@@ -94,7 +95,7 @@ PanelWindow {
                 colors: root.colors
                 moduleConfig: root.moduleConfig
                 fontsConfig: root.fontsConfig
-                title: workspaces.activeWindowTitleForOutput(root.screen ? root.screen.name : "")
+                title: root.workspaceService ? root.workspaceService.activeWindowTitleForOutput(root.screen ? root.screen.name : "") : ""
             }
 
             // Center modules

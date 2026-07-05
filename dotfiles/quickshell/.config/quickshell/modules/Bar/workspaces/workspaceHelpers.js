@@ -61,17 +61,31 @@ function shouldEnableHyprlandGlobalShortcuts(compositorName) {
 }
 
 function normalizeHyprland(
+  outputName,
   workspaces,
-  activeWorkspaceId,
   clients,
+  monitors,
   ignoreClasses,
   windowIcons,
 ) {
-  const sortedWorkspaces = (workspaces || []).slice().sort(function (a, b) {
+  const requestedOutput = displayName(outputName, "");
+  if (!requestedOutput) return [];
+
+  const monitor = findHyprlandMonitor(outputName, monitors);
+  const activeWorkspace = monitor ? monitor.activeWorkspace || {} : {};
+  const activeWorkspaceId = activeWorkspace.id;
+  const sortedWorkspaces = (workspaces || []).filter(function (workspace) {
+    return workspace.monitor === requestedOutput;
+  }).sort(function (a, b) {
     return a.id - b.id;
   });
   const ignored = ignoreClasses || [];
+  const workspaceIds = {};
   const result = [];
+
+  for (let i = 0; i < sortedWorkspaces.length; i++) {
+    workspaceIds[sortedWorkspaces[i].id] = true;
+  }
 
   for (let i = 0; i < sortedWorkspaces.length; i++) {
     const workspace = sortedWorkspaces[i];
@@ -81,6 +95,9 @@ function normalizeHyprland(
       const client = clients[j];
       const workspaceRef = client.workspace || {};
       const className = client.class || client.initialClass || "";
+
+      if (!Object.prototype.hasOwnProperty.call(workspaceIds, workspaceRef.id))
+        continue;
 
       if (workspaceRef.id !== workspace.id) continue;
 
@@ -104,33 +121,22 @@ function normalizeHyprland(
   return result;
 }
 
-function normalizeNiri(workspaces, windows, ignoreClasses, windowIcons) {
-  const outputOrder = [];
-  const outputIndexes = {};
-  const sortedWorkspaces = (workspaces || []).slice().sort(function (a, b) {
-    const aOutput = displayName(a.output, "");
-    const bOutput = displayName(b.output, "");
+function normalizeNiri(outputName, workspaces, windows, ignoreClasses, windowIcons) {
+  const requestedOutput = displayName(outputName, "");
+  if (!requestedOutput) return [];
 
-    if (!Object.prototype.hasOwnProperty.call(outputIndexes, aOutput)) {
-      outputIndexes[aOutput] = outputOrder.length;
-      outputOrder.push(aOutput);
-    }
-
-    if (!Object.prototype.hasOwnProperty.call(outputIndexes, bOutput)) {
-      outputIndexes[bOutput] = outputOrder.length;
-      outputOrder.push(bOutput);
-    }
-
-    if (outputIndexes[aOutput] !== outputIndexes[bOutput])
-      return outputIndexes[aOutput] - outputIndexes[bOutput];
-
+  const sortedWorkspaces = (workspaces || []).filter(function (workspace) {
+    return workspace.output === requestedOutput;
+  }).sort(function (a, b) {
     return a.idx - b.idx;
   });
   const ignored = ignoreClasses || [];
-  const hasFocusedWorkspace = sortedWorkspaces.some(function (workspace) {
-    return !!workspace.is_focused;
-  });
+  const workspaceIds = {};
   const result = [];
+
+  for (let i = 0; i < sortedWorkspaces.length; i++) {
+    workspaceIds[sortedWorkspaces[i].id] = true;
+  }
 
   for (let i = 0; i < sortedWorkspaces.length; i++) {
     const workspace = sortedWorkspaces[i];
@@ -141,6 +147,9 @@ function normalizeNiri(workspaces, windows, ignoreClasses, windowIcons) {
     for (let j = 0; j < (windows || []).length; j++) {
       const window = windows[j];
       const appId = window.app_id || window.appId || "";
+
+      if (!Object.prototype.hasOwnProperty.call(workspaceIds, window.workspace_id))
+        continue;
 
       if (window.workspace_id !== workspace.id) continue;
 
@@ -182,9 +191,7 @@ function normalizeNiri(workspaces, windows, ignoreClasses, windowIcons) {
       id: workspace.id,
       name: display,
       switchTarget: display,
-      active: hasFocusedWorkspace
-        ? !!workspace.is_focused
-        : !!workspace.is_active,
+      active: !!workspace.is_active,
       windowIcons: icons,
     });
   }
@@ -192,9 +199,11 @@ function normalizeNiri(workspaces, windows, ignoreClasses, windowIcons) {
   return result;
 }
 
-function activeNiriWindowTitlesByOutput(workspaces, windows) {
+function activeNiriWindowTitleForOutput(outputName, workspaces, windows) {
+  const requestedOutput = displayName(outputName, "");
+  if (!requestedOutput) return "";
+
   const windowsById = {};
-  const result = {};
 
   for (let i = 0; i < (windows || []).length; i++) {
     const window = windows[i];
@@ -207,13 +216,44 @@ function activeNiriWindowTitlesByOutput(workspaces, windows) {
     const workspace = workspaces[i];
     const output = displayName(workspace.output, "");
 
-    if (!output || !workspace.is_active) continue;
+    if (output !== requestedOutput || !workspace.is_active) continue;
 
     const window = windowsById[workspace.active_window_id];
-    result[output] = window
+    return window
       ? displayName(window.title, displayName(window.app_id || window.appId, ""))
       : "";
   }
 
-  return result;
+  return "";
+}
+
+function findHyprlandMonitor(outputName, monitors) {
+  const requestedOutput = displayName(outputName, "");
+  if (!requestedOutput) return null;
+
+  for (let i = 0; i < (monitors || []).length; i++) {
+    const monitor = monitors[i];
+    if (monitor && monitor.name === requestedOutput) return monitor;
+  }
+
+  return null;
+}
+
+function activeHyprlandWindowTitleForOutput(outputName, monitors) {
+  const monitor = findHyprlandMonitor(outputName, monitors);
+  if (!monitor || !monitor.activeWorkspace) return "";
+
+  return displayName(monitor.activeWorkspace.lastwindowtitle, "");
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    activeHyprlandWindowTitleForOutput,
+    activeNiriWindowTitleForOutput,
+    detectCompositor,
+    normalizeHyprland,
+    normalizeNiri,
+    parseEnvironmentSnapshot,
+    shouldEnableHyprlandGlobalShortcuts,
+  };
 }

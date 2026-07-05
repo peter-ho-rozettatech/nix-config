@@ -1,20 +1,15 @@
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
-import QtQuick.Dialogs
-import "modules/Bar/workspaces/workspaceHelpers.js" as WorkspaceHelpers
 import "modules/Bar"
+import "modules/Bar/workspaces" as WorkspaceFeature
 import "modules/CodexBar" as CodexFeature
 import "modules/ControlOSD" as OsdFeature
 import "modules/Notifications" as NotifyFeature
 
 ShellRoot {
     id: root
-
-    property string compositorName: ""
 
     // Configuration component with colors
     Loader {
@@ -45,6 +40,14 @@ ShellRoot {
         codexbarConfig: config.codexbar
     }
 
+    WorkspaceFeature.WorkspaceService {
+        id: workspaceSvc
+        ignoreClasses: config && config.workspaces ? config.workspaces.ignoreClasses : []
+        windowIcons: config ? config.windowIcons : ({})
+        updateInterval: config && config.workspaces ? config.workspaces.updateInterval : 200
+        activeUpdateInterval: config && config.workspaces ? config.workspaces.activeUpdateInterval : 100
+    }
+
     // Bar components, one per connected screen.
     Variants {
         model: Quickshell.screens
@@ -63,9 +66,9 @@ ShellRoot {
                 stepsConfig: config.steps
                 popupsConfig: config.popups
                 fontsConfig: config.fonts
-                windowIcons: config.windowIcons
                 notificationsManager: notifications
                 codexBarService: codexBarSvc
+                workspaceService: workspaceSvc
             }
         }
     }
@@ -103,10 +106,6 @@ ShellRoot {
     }
 
     Component.onCompleted: {
-        detectCompositorProcess.exec({
-            command: ["sh", "-lc", "env"]
-        });
-
         // Set up periodic updates to sync with actual system state
         updateTimer.start();
     }
@@ -145,16 +144,6 @@ ShellRoot {
     function volumeMute() {
         volumeControl.toggleMute();
         volumeOsd.show();
-    }
-
-    Process {
-        id: detectCompositorProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const env = WorkspaceHelpers.parseEnvironmentSnapshot(this.text.trim());
-                root.compositorName = WorkspaceHelpers.detectCompositor(env);
-            }
-        }
     }
 
     IpcHandler {
@@ -196,7 +185,7 @@ ShellRoot {
 
     // Hyprland global shortcuts use the compositor protocol; Niri calls the IPC handler above.
     Loader {
-        active: WorkspaceHelpers.shouldEnableHyprlandGlobalShortcuts(root.compositorName)
+        active: workspaceSvc.compositorName === "hyprland"
         sourceComponent: hyprlandGlobalShortcuts
     }
 

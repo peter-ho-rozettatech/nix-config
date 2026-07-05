@@ -1,12 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
-import Quickshell
-import Quickshell.Io
-import "workspaces" as WorkspaceBackends
-import "workspaces/workspaceHelpers.js" as WorkspaceHelpers
 
 Item {
     id: root
@@ -17,104 +11,9 @@ Item {
     property var colors
     property var workspacesConfig
     property var fontsConfig
-    property var windowIcons
-    property string compositorName: ""
-    property bool unsupportedCompositorLogged: false
-    property var workspacesData: root.compositorName === "hyprland" ? hyprlandBackend.workspacesData : root.compositorName === "niri" ? niriBackend.workspacesData : []
-    property var activeWindowTitlesByOutput: root.compositorName === "niri" ? niriBackend.activeWindowTitlesByOutput : ({})
-
-    function activeWindowTitleForOutput(outputName) {
-        if (root.compositorName !== "niri" || !outputName)
-            return "";
-
-        const titles = root.activeWindowTitlesByOutput || ({});
-        return titles[outputName] || "";
-    }
-
-    function logUnsupportedCompositor() {
-        if (root.unsupportedCompositorLogged)
-            return;
-
-        root.unsupportedCompositorLogged = true;
-        console.log("Workspaces: unsupported compositor");
-    }
-
-    function refreshBackend() {
-        if (root.compositorName === "hyprland")
-            hyprlandBackend.refresh();
-        else if (root.compositorName === "niri")
-            niriBackend.refresh();
-    }
-
-    function refreshActiveBackend() {
-        if (root.compositorName === "hyprland")
-            hyprlandBackend.refreshActive();
-        else if (root.compositorName === "niri")
-            niriBackend.refreshActive();
-    }
-
-    function switchBackendWorkspace(target) {
-        if (root.compositorName === "hyprland")
-            hyprlandBackend.switchWorkspace(target);
-        else if (root.compositorName === "niri")
-            niriBackend.switchWorkspace(target);
-    }
-
-    Component.onCompleted: {
-        detectCompositorProcess.exec({
-            command: ["sh", "-lc", "env"]
-        });
-    }
-
-    Timer {
-        id: updateTimer
-        interval: root.workspacesConfig.updateInterval
-        repeat: true
-        running: root.compositorName.length > 0
-        onTriggered: {
-            root.refreshBackend();
-        }
-    }
-
-    Timer {
-        id: activeWorkspaceTimer
-        interval: root.workspacesConfig.activeUpdateInterval
-        repeat: true
-        running: root.compositorName.length > 0
-        onTriggered: {
-            root.refreshActiveBackend();
-        }
-    }
-
-    Process {
-        id: detectCompositorProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const env = WorkspaceHelpers.parseEnvironmentSnapshot(this.text.trim());
-                root.compositorName = WorkspaceHelpers.detectCompositor(env);
-
-                if (!root.compositorName) {
-                    root.logUnsupportedCompositor();
-                    return;
-                }
-
-                root.refreshBackend();
-                root.refreshActiveBackend();
-            }
-        }
-    }
-
-    WorkspaceBackends.HyprlandBackend {
-        id: hyprlandBackend
-        ignoreClasses: root.workspacesConfig ? root.workspacesConfig.ignoreClasses : []
-        windowIcons: root.windowIcons
-    }
-
-    WorkspaceBackends.NiriBackend {
-        id: niriBackend
-        ignoreClasses: root.workspacesConfig ? root.workspacesConfig.ignoreClasses : []
-        windowIcons: root.windowIcons
-    }
+    property string outputName: ""
+    property var workspaceService
+    property var workspacesData: root.workspaceService ? root.workspaceService.workspacesForOutput(root.outputName) : []
 
     Row {
         id: workspaceRow
@@ -190,7 +89,8 @@ Item {
                     hoverEnabled: true
                     onContainsMouseChanged: workspaceDelegate.hovered = containsMouse
                     onClicked: {
-                        root.switchBackendWorkspace(workspaceDelegate.switchTarget);
+                        if (root.workspaceService)
+                            root.workspaceService.switchWorkspace(workspaceDelegate.switchTarget);
                     }
                 }
             }
