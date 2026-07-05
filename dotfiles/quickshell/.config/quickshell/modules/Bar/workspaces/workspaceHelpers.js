@@ -191,3 +191,29 @@ function normalizeNiri(workspaces, windows, ignoreClasses, windowIcons) {
 
   return result;
 }
+
+function activeNiriWindowTitlesByOutput(workspaces, windows) {
+  const windowsById = {};
+  const result = {};
+
+  for (let i = 0; i < (windows || []).length; i++) {
+    const window = windows[i];
+    if (window.id === null || window.id === undefined) continue;
+
+    windowsById[window.id] = window;
+  }
+
+  for (let i = 0; i < (workspaces || []).length; i++) {
+    const workspace = workspaces[i];
+    const output = displayName(workspace.output, "");
+
+    if (!output || !workspace.is_active) continue;
+
+    const window = windowsById[workspace.active_window_id];
+    result[output] = window
+      ? displayName(window.title, displayName(window.app_id || window.appId, ""))
+      : "";
+  }
+
+  return result;
+}

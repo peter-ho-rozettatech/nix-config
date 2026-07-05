@@ -21,6 +21,15 @@ Item {
     property string compositorName: ""
     property bool unsupportedCompositorLogged: false
     property var workspacesData: root.compositorName === "hyprland" ? hyprlandBackend.workspacesData : root.compositorName === "niri" ? niriBackend.workspacesData : []
+    property var activeWindowTitlesByOutput: root.compositorName === "niri" ? niriBackend.activeWindowTitlesByOutput : ({})
+
+    function activeWindowTitleForOutput(outputName) {
+        if (root.compositorName !== "niri" || !outputName)
+            return "";
+
+        const titles = root.activeWindowTitlesByOutput || ({});
+        return titles[outputName] || "";
+    }
 
     function logUnsupportedCompositor() {
         if (root.unsupportedCompositorLogged)

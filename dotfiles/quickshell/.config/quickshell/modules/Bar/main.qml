@@ -84,6 +84,19 @@ PanelWindow {
                 windowIcons: root.windowIcons
             }
 
+            WindowTitle {
+                id: windowTitle
+                anchors.left: workspaces.right
+                anchors.leftMargin: root.barConfig ? root.barConfig.moduleSpacing : 0
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.max(0, clock.x - (root.barConfig ? root.barConfig.clockGap : 0) - windowTitle.x)
+                height: parent.height
+                colors: root.colors
+                moduleConfig: root.moduleConfig
+                fontsConfig: root.fontsConfig
+                title: workspaces.activeWindowTitleForOutput(root.screen ? root.screen.name : "")
+            }
+
             // Center modules
             Clock {
                 id: clock

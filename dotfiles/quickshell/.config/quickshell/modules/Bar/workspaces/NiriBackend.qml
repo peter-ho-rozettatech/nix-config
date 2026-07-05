@@ -13,11 +13,13 @@ Item {
     property var ignoreClasses: []
     property var windowIcons: ({})
     property var workspacesData: []
+    property var activeWindowTitlesByOutput: ({})
     property var cachedWorkspaces: []
     property var cachedWindows: []
 
     function rebuild() {
         root.workspacesData = WorkspaceHelpers.normalizeNiri(root.cachedWorkspaces, root.cachedWindows, root.ignoreClasses, root.windowIcons || ({}));
+        root.activeWindowTitlesByOutput = WorkspaceHelpers.activeNiriWindowTitlesByOutput(root.cachedWorkspaces, root.cachedWindows);
     }
 
     function parseJson(label, output, onSuccess) {

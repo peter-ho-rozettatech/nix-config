@@ -24,6 +24,7 @@ Rectangle {
     property alias font: content.font
     property alias horizontalAlignment: content.horizontalAlignment
     property alias verticalAlignment: content.verticalAlignment
+    property alias elide: content.elide
 
     property bool hoverEnabled: false
     property bool hoverHighlight: false
