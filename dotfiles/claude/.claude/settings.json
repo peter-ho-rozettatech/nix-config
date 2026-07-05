@@ -1,7 +1,9 @@
 {
-  "editorMode": "vim",
-  "effortLevel": "xhigh",
-  "enabledPlugins": {},
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "opus[1m]",
   "hooks": {
     "Notification": [
       {
@@ -93,16 +95,16 @@
       }
     ]
   },
-  "includeCoAuthoredBy": false,
-  "permissions": {
-    "defaultMode": "bypassPermissions"
-  },
-  "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "type": "command",
     "command": "ccstatusline",
     "padding": 0
   },
+  "enabledPlugins": {},
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
-  "tui": "fullscreen"
+  "editorMode": "vim",
+  "remoteControlAtStartup": false
 }
