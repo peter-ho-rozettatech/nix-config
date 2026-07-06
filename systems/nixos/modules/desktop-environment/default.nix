@@ -28,11 +28,17 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    evince
-    nautilus
-    networkmanagerapplet
-    pwvucontrol
-    seahorse
+    baobab # disk usage analyzer
+    dconf-editor # graphical dconf settings editor
+    evince # document/PDF viewer
+    file-roller # archive manager
+    gnome-calculator # calculator
+    gnome-disk-utility # disk and partition manager
+    loupe # image viewer
+    nautilus # file manager
+    networkmanagerapplet # NetworkManager tray applet
+    pwvucontrol # PipeWire volume control
+    seahorse # GNOME keyring/password manager
   ];
 
   environment.sessionVariables = {
