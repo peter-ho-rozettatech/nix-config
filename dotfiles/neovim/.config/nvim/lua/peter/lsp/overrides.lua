@@ -385,17 +385,17 @@ return {
     },
     lua_ls = {},
     -- marksman = {},
-    mpls = {
-        cmd = {
-            "mpls",
-            "--theme",
-            "light",
-            "--enable-emoji",
-            "--enable-footnotes",
-            "--no-auto",
-            "--tabs",
-        },
-    },
+    -- mpls = {
+    --     cmd = {
+    --         "mpls",
+    --         "--theme",
+    --         "light",
+    --         "--enable-emoji",
+    --         "--enable-footnotes",
+    --         "--no-auto",
+    --         "--tabs",
+    --     },
+    -- },
     nil_ls = {
         settings = {
             ["nil"] = {

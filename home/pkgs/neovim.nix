@@ -64,7 +64,7 @@
       jdt-language-server
       lua-language-server
       # marksman # NOTE: disabled because it depends on dotnet which requires swift 5.10.1 (broken on darwin)
-      mpls
+      # mpls
       nil
       # nodePackages.typescript-language-server
       unstable.pyrefly
