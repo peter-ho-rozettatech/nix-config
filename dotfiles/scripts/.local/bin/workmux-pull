@@ -7,6 +7,8 @@ die() {
     exit 1
 }
 
+self="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
+
 current_worktree_root() {
     local root
 
@@ -76,7 +78,6 @@ pick_worktree() {
 
     WORKMUX_PULL_PREVIEW_BASE_HEAD="$(git -C "$current_root" rev-parse HEAD)"
     export WORKMUX_PULL_PREVIEW_BASE_HEAD
-    export -f preview_worktree
 
     worktree_candidates "$current_root" \
         | fzf \
@@ -84,7 +85,7 @@ pick_worktree() {
             --with-nth=1,2,4,3 \
             --prompt 'Worktree> ' \
             --header 'Select a workmux worktree to stage and merge' \
-            --preview 'bash -c '\''preview_worktree "$@"'\'' _ {1} {2} {3} {4}' \
+            --preview "'$self' --preview {1} {2} {3} {4}" \
             --preview-window 'right:60%'
 }
 
@@ -145,6 +146,12 @@ stage_worktree_changes() {
 
     git -C "$worktree_path" add --all -- .
 }
+
+if [ "${1:-}" = "--preview" ]; then
+    shift
+    preview_worktree "$@"
+    exit 0
+fi
 
 current_root="$(current_worktree_root)"
 
