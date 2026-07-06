@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ../desktop
@@ -15,6 +20,7 @@
   };
 
   services.upower.enable = true;
+  services.throttled.enable = lib.mkForce false;
 
   specialisation = {
     powersave.configuration = {
