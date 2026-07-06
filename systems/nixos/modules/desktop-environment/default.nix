@@ -36,6 +36,7 @@
     gnome-disk-utility # disk and partition manager
     loupe # image viewer
     nautilus # file manager
+    nautilus-python # python bindings for nautilus
     networkmanagerapplet # NetworkManager tray applet
     pwvucontrol # PipeWire volume control
     seahorse # GNOME keyring/password manager
