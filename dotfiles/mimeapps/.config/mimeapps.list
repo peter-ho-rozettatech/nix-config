@@ -1,4 +1,5 @@
 [Default Applications]
+application/pdf=org.pwmt.zathura-pdf-mupdf.desktop
 application/x-extension-htm=floorp.desktop
 application/x-extension-html=floorp.desktop
 application/x-extension-shtml=floorp.desktop

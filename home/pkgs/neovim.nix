@@ -98,7 +98,7 @@
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
       # qmlls (linux only, requires wayland)
-      kdePackages.qtdeclarative
+      qt6.qtdeclarative
     ];
 
   programs.neovim = {

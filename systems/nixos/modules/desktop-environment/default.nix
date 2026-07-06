@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{ pkgs, ... }: {
   imports = [
     ./greetd.nix
     ./i18n.nix
@@ -7,7 +6,8 @@
   ];
   services = {
     desktopManager = {
-      plasma6.enable = true;
+      gnome.enable = false;
+      plasma6.enable = false;
       cosmic.enable = false;
     };
     xserver = {
@@ -19,12 +19,23 @@
     };
   };
 
-  # services.gnome.gnome-keyring.enable = true;
+  services.gnome.gnome-keyring.enable = true;
+
   # security.pam.services.login.enableGnomeKeyring = true;
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
   ];
 
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  environment.systemPackages = with pkgs; [
+    evince
+    nautilus
+    networkmanagerapplet
+    pwvucontrol
+    seahorse
+  ];
+
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+  };
 }

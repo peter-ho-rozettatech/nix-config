@@ -6,10 +6,8 @@
       cliphist
       fuzzel
       grim
-      networkmanagerapplet
       libnotify
       pamixer
-      pwvucontrol
       playerctl
       qt5.qtwayland
       qt6.qtwayland
@@ -61,17 +59,4 @@
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  systemd.user.services.nm-applet = {
-    Unit = {
-      Description = "NetworkManager applet";
-      PartOf = [ "graphical-session.target" ];
-      After = [ "graphical-session.target" ];
-      ConditionEnvironment = "WAYLAND_DISPLAY";
-    };
-    Service = {
-      ExecStart = "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator";
-      Restart = "on-failure";
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-  };
 }

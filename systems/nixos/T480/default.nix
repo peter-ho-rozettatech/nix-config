@@ -14,6 +14,8 @@
     group = "root";
   };
 
+  services.upower.enable = true;
+
   specialisation = {
     powersave.configuration = {
       system.nixos.tags = [ "powersave" ];

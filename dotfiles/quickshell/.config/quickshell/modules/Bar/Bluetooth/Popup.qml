@@ -196,7 +196,7 @@ OverlayHost {
                     Text {
                         id: openBluemanText
                         anchors.centerIn: parent
-                        text: "Open Blueman"
+                        text: "Open Bluetooth Settings"
                         color: colors.fg
                         font.family: fontsConfig.defaultFamily
                         font.pixelSize: fontsConfig.defaultSize

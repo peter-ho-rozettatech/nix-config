@@ -7,7 +7,8 @@
 let
   niriActions = config.lib.niri.actions;
   niriQuickshellOsd = command: niriActions.spawn "quickshell" "ipc" "call" "quickshell-osd" command;
-  niriQuickshellNotifications = command: niriActions.spawn "quickshell" "ipc" "call" "quickshell-notifications" command;
+  niriQuickshellNotifications =
+    command: niriActions.spawn "quickshell" "ipc" "call" "quickshell-notifications" command;
   niriScreenshotArea = niriActions.spawn "sh" "-c" ''grim -g "$(slurp)" - | wl-copy'';
   niriWorkspaceBinds = builtins.listToAttrs (
     builtins.concatLists (
@@ -159,7 +160,7 @@ in
           "Mod+F" = {
             repeat = false;
             hotkey-overlay.title = "Open File Manager";
-            action = spawn "dolphin";
+            action = spawn "nautilus";
           };
           "Mod+T" = {
             repeat = false;

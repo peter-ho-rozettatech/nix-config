@@ -134,6 +134,11 @@ ShellRoot {
         brightnessOsd.show();
     }
 
+    function brightnessShow() {
+        brightnessControl.getBrightness();
+        brightnessOsd.show();
+    }
+
     function volumeUp() {
         volumeControl.increase(config.steps.volume);
         volumeOsd.show();
@@ -157,6 +162,9 @@ ShellRoot {
         }
         function brightnessDown(): void {
             root.brightnessDown();
+        }
+        function brightnessShow(): void {
+            root.brightnessShow();
         }
         function volumeUp(): void {
             root.volumeUp();

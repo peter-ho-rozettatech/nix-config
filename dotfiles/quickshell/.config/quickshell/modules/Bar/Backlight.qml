@@ -68,7 +68,7 @@ BaseModule {
 
     onClicked: {
         Quickshell.execDetached({
-            command: ["pwvucontrol"]
+            command: ["quickshell", "ipc", "call", "quickshell-osd", "brightnessShow"]
         });
     }
 }

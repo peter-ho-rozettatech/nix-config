@@ -13,7 +13,21 @@ Item {
     property var fontsConfig
     property string outputName: ""
     property var workspaceService
-    property var workspacesData: root.workspaceService ? root.workspaceService.workspacesForOutput(root.outputName) : []
+    property var workspacesData: {
+        if (!root.workspaceService)
+            return [];
+
+        root.workspaceService.compositorName;
+        root.workspaceService.cachedHyprlandWorkspaces;
+        root.workspaceService.cachedHyprlandClients;
+        root.workspaceService.cachedHyprlandMonitors;
+        root.workspaceService.cachedNiriWorkspaces;
+        root.workspaceService.cachedNiriWindows;
+        root.workspaceService.ignoreClasses;
+        root.workspaceService.windowIcons;
+
+        return root.workspaceService.workspacesForOutput(root.outputName);
+    }
 
     Row {
         id: workspaceRow

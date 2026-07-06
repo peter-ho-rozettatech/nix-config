@@ -99,12 +99,12 @@ QtObject {
         "firefox": "󰈹",
         "floorp": "󰈹",
         "kitty": "󰄛",
-        "nautilus": "󰉋",
-        "org.kde.dolphin": "󰉋",
+        "org.gnome.Nautilus": "󰉋",
         "slack": "󰒱",
         "thunderbird": "󰇮",
         "thunar": "󰉋",
-        "wezterm": "󰆍"
+        "wezterm": "󰆍",
+        "org.pwmt.zathura": ""
     }
 
     // Bar configuration
