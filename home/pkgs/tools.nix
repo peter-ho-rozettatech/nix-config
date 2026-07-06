@@ -19,8 +19,9 @@
     figlet # ascii art text generator
     fzf # fuzzy finder
     gcc # GNU Compiler Collection
-    gnumake # GNU Make
     # glow # markdown viewer
+    gnumake # GNU Make
+    go-grip # markdown preview
     grex # regex generator
     parallel # run jobs in parallel
     pokemon-colorscripts # colorful scripts for Pokémon games
