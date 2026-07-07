@@ -5,7 +5,7 @@
   fetchurl,
 }:
 let
-  version = "0.22.0";
+  version = "unstable-2026-07-06";
 
   hashes = {
     "x86_64-linux" = "sha256-03G3gkKjHWh7rc0ncrc1fjOVZ8h0tE56UDFtHRHSp9E=";
@@ -35,8 +35,8 @@ stdenvNoCC.mkDerivation {
   src = fetchFromGitHub {
     owner = "backnotprop";
     repo = "plannotator";
-    rev = "v${version}";
-    sha256 = "sha256-CbKxru0bNgCvkoQr973GnNWvcspar2MkNG4AsJBEYUk=";
+    rev = "070d9a5f6d679ecb575fbffd5d53615302bc1eb1";
+    sha256 = "0s52n5sp7088zs7yh4g4am48q6l8iim6iivgx1al3aqs95zsl4ab";
   };
 
   binary = fetchurl {
