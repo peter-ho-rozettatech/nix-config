@@ -43,6 +43,14 @@
     enable = true;
   };
 
+  # Workaround: nixpkgs dropped `--toc-depth` from `nixos-render-docs`
+  # (renamed to `--sidebar-depth`), but nix-darwin's `darwin-manual-html`
+  # still passes the old flag, breaking the build. Disable HTML manual
+  # generation (both entry points) until nix-darwin catches up.
+  # See: https://github.com/nix-darwin/nix-darwin/issues/1819
+  documentation.doc.enable = false;
+  system.tools.darwin-uninstaller.enable = false;
+
   services.kanata = {
     enable = true;
   };
