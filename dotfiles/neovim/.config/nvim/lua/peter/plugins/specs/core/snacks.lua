@@ -108,6 +108,10 @@ return {
                         },
                         { icon = " ", key = "q", desc = "Quit", action = ":qa" },
                     },
+                    header = vim.fn.executable("figlet") == 1
+                            and vim.fn.system({ "figlet", "-f", "ANSI Shadow", vim.env.SNACKS_HEADER or "NEOVIM" })
+                        or vim.env.SNACKS_HEADER
+                        or "NEOVIM",
                 },
                 sections = {
                     -- left
