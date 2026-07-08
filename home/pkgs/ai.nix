@@ -245,7 +245,7 @@ in
     basic-memory.enable = false;
     crush.enable = false;
     impeccable.enable = true;
-    plannotator.enable = false;
+    plannotator.enable = true;
     playwriter.enable = false;
     superpowers.enable = false;
     taste-skill = {

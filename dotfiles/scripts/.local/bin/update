@@ -33,7 +33,6 @@ SKIP_PACKAGES=(
 STABLE_PACKAGES=(
     "basic-memory"
     "codexbar"
-    "plannotator"
     "playwriter"
     "pybetter"
 )

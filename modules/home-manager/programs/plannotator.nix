@@ -4,6 +4,10 @@
   pkgs,
   ...
 }:
+let
+  plannotator = pkgs.llm-agents.plannotator;
+  plannotatorSource = plannotator.src;
+in
 {
   options.programs.plannotator = {
     enable = lib.mkEnableOption "plannotator opencode plugin";
@@ -11,24 +15,24 @@
 
   config = lib.mkIf config.programs.plannotator.enable (
     lib.mkMerge [
-      { home.packages = [ pkgs.plannotator ]; }
+      { home.packages = [ plannotator ]; }
       {
         programs.ai.skills.plannotator-compound = {
-          source = "${pkgs.plannotator}/share/plannotator/apps/skills/plannotator-compound";
+          source = "${plannotatorSource}/apps/skills/extra/plannotator-compound";
           clients = {
             opencode = {
               pluginEntries = [ "@plannotator/opencode" ];
               files = lib.mapAttrs' (
                 name: _:
                 lib.nameValuePair "opencode/commands/${name}" {
-                  source = "${pkgs.plannotator}/share/plannotator/apps/opencode-plugin/commands/${name}";
+                  source = "${plannotatorSource}/apps/opencode-plugin/commands/${name}";
                 }
-              ) (builtins.readDir "${pkgs.plannotator}/share/plannotator/apps/opencode-plugin/commands");
+              ) (builtins.readDir "${plannotatorSource}/apps/opencode-plugin/commands");
             };
             "claude-code" = {
               enable = false;
               pluginPaths = [
-                "${pkgs.plannotator}/share/plannotator/apps/hook"
+                "${plannotatorSource}/apps/hook"
               ];
             };
           };
