@@ -5,7 +5,7 @@
   fetchurl,
 }:
 let
-  version = "unstable-2026-07-06";
+  version = "browser-tests-pr957";
 
   hashes = {
     "x86_64-linux" = "sha256-03G3gkKjHWh7rc0ncrc1fjOVZ8h0tE56UDFtHRHSp9E=";
