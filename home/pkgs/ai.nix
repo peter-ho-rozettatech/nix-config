@@ -237,7 +237,6 @@ in
         "skill-creator"
       ];
     };
-    basic-memory.enable = false;
     crush.enable = false;
     impeccable.enable = true;
     jscpd.enable = true;

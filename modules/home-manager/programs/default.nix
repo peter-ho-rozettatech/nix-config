@@ -6,7 +6,6 @@
     ./annot.nix
     ./anthropic-skills.nix
     ./betterfox.nix
-    ./basic-memory.nix
     ./claude-code.nix
     ./crush.nix
     ./impeccable.nix

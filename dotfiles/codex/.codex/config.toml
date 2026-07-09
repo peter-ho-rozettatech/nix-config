@@ -5,11 +5,6 @@ personality = "pragmatic"
 [features]
 multi_agent = true
 
-[mcp_servers.basic-memory]
-args = []
-command = "basic-memory-mcp"
-enabled = true
-
 [tui]
 status_line = [
     "model-with-reasoning",

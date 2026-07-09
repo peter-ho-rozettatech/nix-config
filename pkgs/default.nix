@@ -7,8 +7,6 @@ with pkgs;
 {
   anthropic-skills = callPackage ./anthropic-skills { };
   betterfox = callPackage ./betterfox { };
-  basic-memory = callPackage ./basic-memory { };
-  basic-memory-skills = callPackage ./basic-memory-skills { };
   cpa-manager = callPackage ./cpa-manager { };
   codexbar = callPackage ./codexbar { };
   figlet-fonts = callPackage ./figlet-fonts { };

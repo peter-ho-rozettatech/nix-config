@@ -31,7 +31,6 @@ SKIP_PACKAGES=(
 
 # Packages that use stable versioning (updated with --version=stable)
 STABLE_PACKAGES=(
-    "basic-memory"
     "codexbar"
     "playwriter"
     "pybetter"
