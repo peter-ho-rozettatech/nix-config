@@ -23,11 +23,11 @@ return {
                 enable = true,
             },
             filters = {
-                custom = vim.g.wildignore_regex or {},
+                dotfiles = false,
+                git_ignored = false,
             },
             git = {
-                enable = false,
-                ignore = false,
+                enable = true,
             },
             view = {
                 signcolumn = "no",
@@ -35,7 +35,7 @@ return {
             },
             on_attach = function(bufnr)
                 local api = require("nvim-tree.api")
-                api.config.mappings.default_on_attach(bufnr)
+                api.map.on_attach.default(bufnr)
 
                 vim.keymap.del("n", "s", { buffer = bufnr })
                 vim.keymap.del("n", "S", { buffer = bufnr })
@@ -74,12 +74,18 @@ return {
                 },
             },
             renderer = {
-                highlight_git = true,
+                highlight_git = "name",
+                highlight_hidden = "none",
                 indent_markers = {
                     enable = true,
                 },
             },
         })
+
+        -- vim.api.nvim_set_hl(0, "NvimTreeHiddenFileHL", { link = "Comment" })
+        -- vim.api.nvim_set_hl(0, "NvimTreeHiddenFolderHL", { link = "Comment" })
+        -- vim.api.nvim_set_hl(0, "NvimTreeGitFileIgnoredHL", { link = "Comment" })
+        -- vim.api.nvim_set_hl(0, "NvimTreeGitFolderIgnoredHL", { link = "Comment" })
 
         local prev = { new_name = "", old_name = "" } -- Prevents duplicate events
         vim.api.nvim_create_autocmd("User", {
