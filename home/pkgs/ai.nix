@@ -240,6 +240,7 @@ in
     basic-memory.enable = false;
     crush.enable = false;
     impeccable.enable = true;
+    jscpd.enable = true;
     plannotator.enable = true;
     playwriter.enable = false;
     superpowers.enable = false;

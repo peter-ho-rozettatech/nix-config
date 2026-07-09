@@ -10,6 +10,7 @@
     ./claude-code.nix
     ./crush.nix
     ./impeccable.nix
+    ./jscpd.nix
     ./plannotator.nix
     ./playwriter.nix
     ./superpowers.nix
