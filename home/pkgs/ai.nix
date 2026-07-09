@@ -14,6 +14,7 @@ let
   llmAgents = with pkgs.llm-agents; [
     openspec
     workmux
+    zat # code outline viewer
   ];
 in
 {
