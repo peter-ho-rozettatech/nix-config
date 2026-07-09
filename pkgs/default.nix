@@ -25,7 +25,6 @@ with pkgs;
   sort-package-json = callPackage ./sort-package-json { };
   superpowers = callPackage ./superpowers { };
   taste-skill = callPackage ./taste-skill { };
-  uipro = callPackage ./uipro { };
   vim-custom = callPackage ./vim-custom { };
   vscode-langservers-extracted = callPackage ./vscode-langservers-extracted { };
 }

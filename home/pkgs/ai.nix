@@ -21,16 +21,11 @@ in
     packages =
       with pkgs;
       [
-        # amazon-q-cli
         nodejs
-        # open-design
         python3
         python3Packages.tiktoken
         tmuxai
         tokscale
-        uipro
-        # goose-cli
-        # plandex
       ]
       ++ mcpServerPackages
       ++ llmAgents;
