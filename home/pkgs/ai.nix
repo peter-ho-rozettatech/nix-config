@@ -26,7 +26,6 @@ in
         # open-design
         python3
         python3Packages.tiktoken
-        react-doctor
         tmuxai
         tokscale
         uipro
