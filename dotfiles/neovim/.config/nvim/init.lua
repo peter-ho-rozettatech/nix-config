@@ -1,5 +1,3 @@
-vim.go.packlockfile = vim.fn.stdpath("config") .. "/nvim-pack-lock.json"
-
 if vim.env.PROF then
   local snacks = vim.fn.stdpath("data") .. "/site/pack/core/opt/snacks.nvim"
   vim.opt.rtp:append(snacks)
