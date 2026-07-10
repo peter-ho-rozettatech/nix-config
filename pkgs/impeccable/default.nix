@@ -7,13 +7,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "impeccable";
-  version = "skill-v3.9.1-unstable-2026-07-09";
+  version = "skill-v3.9.1-unstable-2026-07-10";
 
   src = fetchFromGitHub {
     owner = "pbakaus";
     repo = "impeccable";
-    rev = "3e38e595c7082d5519ba7326d8f232dc3343f10b";
-    hash = "sha256-mtAyraU1QTkPIke8wjKcqDBaS8jiGwmjM+t522nf37E=";
+    rev = "da99645a58400ed7acb201e6904f9413efd89c6e";
+    hash = "sha256-PlPqT1ZN2X//saqNJ8x3nlVgWVSR93L7/SdhiQVqKJk=";
   };
 
   nativeBuildInputs = [
@@ -27,6 +27,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     substituteInPlace scripts/build.js \
         --replace-fail "await createAllZips(DIST_DIR);" "console.log('Skipping ZIP bundle creation for Nix package');"
+
+    substituteInPlace scripts/build.js \
+        --replace-fail "await createProviderZip(openAiPluginRoot, DIST_DIR, 'openai-plugin');" "console.log('Skipping OpenAI plugin ZIP creation for Nix package');"
   '';
 
   dontConfigure = true;
