@@ -176,7 +176,7 @@ in
           pyright.disabled = true;
           typescript.disabled = true;
         };
-        small_model = "opencode-go/deepseek-v4-flash";
+        small_model = "openai/gpt-5.6-luna";
         plugin = [
           # "@bastiangx/opencode-unmoji"
           "@franlol/opencode-md-table-formatter"
