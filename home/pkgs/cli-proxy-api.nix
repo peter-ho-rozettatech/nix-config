@@ -13,12 +13,12 @@ let
     ${cliProxyApiKeyEnvVar} = cliProxyApiKeyDefault;
   };
 
-  cpaDataDir = "${config.xdg.dataHome}/cpa-manager";
+  cpaManagerPlusDataDir = "${config.xdg.dataHome}/cpa-manager-plus";
 
-  cpaManagerEnvironment = {
+  cpaManagerPlusEnvironment = {
     HTTP_ADDR = "127.0.0.1:18317";
-    USAGE_DATA_DIR = cpaDataDir;
-    USAGE_DB_PATH = "${cpaDataDir}/usage.sqlite";
+    USAGE_DATA_DIR = cpaManagerPlusDataDir;
+    USAGE_DB_PATH = "${cpaManagerPlusDataDir}/usage.sqlite";
     CPA_UPSTREAM_URL = "http://127.0.0.1:8317";
     ${cliProxyApiKeyEnvVar} = cliProxyApiKeyDefault;
     USAGE_COLLECTOR_MODE = "auto";
@@ -32,18 +32,20 @@ let
     exec ${pkgs.llm-agents.cli-proxy-api}/bin/cli-proxy-api --config ${lib.escapeShellArg cliProxyConfig}
   '';
 
-  cpaManagerLaunchWrapper = pkgs.writeShellScript "cpa-manager-launch" ''
+  cpaManagerPlusLaunchWrapper = pkgs.writeShellScript "cpa-manager-plus-launch" ''
     set -eu
-    ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg cpaDataDir}
-    export CPA_MANAGEMENT_KEY="''${${cliProxyApiKeyEnvVar}:-${cliProxyApiKeyDefault}}"
-    exec ${pkgs.cpa-manager}/bin/cpa-manager
+    ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg cpaManagerPlusDataDir}
+    cpaManagerPlusKey="''${${cliProxyApiKeyEnvVar}:-${cliProxyApiKeyDefault}}"
+    export CPA_MANAGER_ADMIN_KEY="$cpaManagerPlusKey"
+    export CPA_MANAGEMENT_KEY="$cpaManagerPlusKey"
+    exec ${pkgs.cpa-manager-plus}/bin/cpa-manager-plus
   '';
 in
 lib.mkMerge [
   {
     home = {
       packages = [
-        pkgs.cpa-manager
+        pkgs.cpa-manager-plus
         pkgs.llm-agents.cli-proxy-api
       ];
 
@@ -81,9 +83,9 @@ lib.mkMerge [
       };
     };
 
-    systemd.user.services.cpa-manager = {
+    systemd.user.services.cpa-manager-plus = {
       Unit = {
-        Description = "CPA-Manager usage service";
+        Description = "CPA Manager Plus usage service";
         After = [
           "network-online.target"
           "cli-proxy-api.service"
@@ -94,9 +96,9 @@ lib.mkMerge [
       Install.WantedBy = [ "default.target" ];
 
       Service = {
-        Environment = toSystemdEnvironment cpaManagerEnvironment;
-        ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${cpaDataDir}";
-        ExecStart = "${cpaManagerLaunchWrapper}";
+        Environment = toSystemdEnvironment cpaManagerPlusEnvironment;
+        ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${cpaManagerPlusDataDir}";
+        ExecStart = "${cpaManagerPlusLaunchWrapper}";
         Restart = "on-failure";
         RestartSec = 5;
       };
@@ -119,11 +121,11 @@ lib.mkMerge [
       };
     };
 
-    launchd.agents.cpa-manager = {
+    launchd.agents.cpa-manager-plus = {
       enable = true;
       config = {
-        ProgramArguments = [ "${cpaManagerLaunchWrapper}" ];
-        EnvironmentVariables = cpaManagerEnvironment;
+        ProgramArguments = [ "${cpaManagerPlusLaunchWrapper}" ];
+        EnvironmentVariables = cpaManagerPlusEnvironment;
         KeepAlive = {
           Crashed = true;
           SuccessfulExit = false;

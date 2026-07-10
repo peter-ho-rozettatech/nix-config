@@ -7,7 +7,7 @@ with pkgs;
 {
   anthropic-skills = callPackage ./anthropic-skills { };
   betterfox = callPackage ./betterfox { };
-  cpa-manager = callPackage ./cpa-manager { };
+  cpa-manager-plus = callPackage ./cpa-manager-plus { };
   codexbar = callPackage ./codexbar { };
   figlet-fonts = callPackage ./figlet-fonts { };
   kubectl-prof = callPackage ./kubectl-prof {
