@@ -36,8 +36,6 @@ in
       ".codex/config.toml".source = config.lib.meta.mkDotfilesSymlink "codex/.codex/config.toml";
     };
     sessionVariables = {
-      BASIC_MEMORY_NO_PROMOS = 1;
-      BASIC_MEMORY_FORCE_LOCAL = "true";
       OPENSPEC_TELEMETRY = 0;
     };
   };
