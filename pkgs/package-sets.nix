@@ -68,6 +68,14 @@ let
           });
         })
       ];
+      input-remapper = prev.input-remapper.overridePythonAttrs (old: {
+        dependencies = old.dependencies ++ [ final.python3Packages.packaging ];
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace inputremapper/configs/data.py \
+            --replace-fail "import pkg_resources" "from importlib.metadata import distribution" \
+            --replace-fail 'pkg_resources.require("input-remapper")[0].location' 'str(distribution("input-remapper").locate_file(""))'
+        '';
+      });
       pylint = prev.python3Packages.pylint.overridePythonAttrs {
         dependencies = prev.python3Packages.pylint.dependencies ++ [ prev.python3Packages.pylint-venv ];
       };

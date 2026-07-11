@@ -24,7 +24,7 @@
       svgo
       prettierd
       pybetter
-      python3Packages.docformatter
+      python312Packages.docformatter
       python3Packages.reorder-python-imports
       python312Packages.ssort
       shfmt
