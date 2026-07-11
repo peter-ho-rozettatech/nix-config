@@ -103,7 +103,17 @@
 
   programs.neovim = {
     enable = true;
-    package = inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    package =
+      let
+        nightly = inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      in
+      if pkgs.stdenv.isDarwin then
+        nightly.overrideAttrs (_: {
+          # The nightly Tree-sitter test runner passes an invalid --listen value on Darwin.
+          doCheck = false;
+        })
+      else
+        nightly;
     sideloadInitLua = true;
     defaultEditor = true;
     withRuby = false;

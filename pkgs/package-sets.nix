@@ -14,19 +14,22 @@ let
     allowBroken = true;
   };
 
-  stableFor = system:
+  stableFor =
+    system:
     import nixpkgs-stable {
       inherit system;
       config = nixpkgsConfig;
     };
 
-  unstableFor = system:
+  unstableFor =
+    system:
     import nixpkgs-unstable {
       inherit system;
       config = nixpkgsConfig;
     };
 
-  customPackages = pkgs:
+  customPackages =
+    pkgs:
     import ./default.nix {
       inherit pkgs inputs;
       stablePkgs = stableFor pkgs.stdenv.hostPlatform.system;
@@ -38,7 +41,8 @@ let
   };
 
   overlays = {
-    additions = final: prev:
+    additions =
+      final: prev:
       customPackages final
       // {
         fishPlugins = (prev.fishPlugins or { }) // import ./fish-plugins { pkgs = final; };
@@ -61,6 +65,14 @@ let
       #     prev.direnv;
       pythonPackagesExtensions = prev.pythonPackagesExtensions or [ ] ++ [
         (_final: prev': {
+          libtmux = prev'.libtmux.overridePythonAttrs (old: {
+            disabledTests =
+              (old.disabledTests or [ ])
+              ++ final.lib.optionals final.stdenv.hostPlatform.isDarwin [
+                # Nix's wrapped sleep is identified as coreutils by tmux on Darwin.
+                "test_break_pane_no_name_uses_natural_name"
+              ];
+          });
           mpv = prev'.mpv.overridePythonAttrs (_: {
             # Tests spin up a real mpv that needs a writable fontconfig
             # cache, which the Nix sandbox does not provide.
@@ -79,6 +91,14 @@ let
       pylint = prev.python3Packages.pylint.overridePythonAttrs {
         dependencies = prev.python3Packages.pylint.dependencies ++ [ prev.python3Packages.pylint-venv ];
       };
+      # The unstable Darwin toolchain crashes while linking these packages.
+      starship =
+        if final.stdenv.hostPlatform.isDarwin then
+          prev.starship.override { rustPlatform = final.stable.rustPlatform; }
+        else
+          prev.starship;
+      unar = if final.stdenv.hostPlatform.isDarwin then final.stable.unar else prev.unar;
+      watchexec = if final.stdenv.hostPlatform.isDarwin then final.stable.watchexec else prev.watchexec;
     };
 
     stable = final: prev: {
@@ -97,14 +117,16 @@ let
     unstable
   ];
 
-  pkgsFor = system:
+  pkgsFor =
+    system:
     import nixpkgs {
       inherit system;
       config = nixpkgsConfig;
       overlays = overlayList;
     };
 
-  packagesFor = system:
+  packagesFor =
+    system:
     let
       pkgs = pkgsFor system;
     in
