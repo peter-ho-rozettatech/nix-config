@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "fba1932bd2af10f584c1e65bbc1dce178b3fb1b9",
+      "rev": "5993c435999ca3f07d93db16abd5ac2a9233dc56",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -66,7 +66,7 @@
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "cursortab.nvim": {
-      "rev": "1c9edd475f2f705233a41e18ba9aa4d62a714dc2",
+      "rev": "8b50d427d76fd995a08ee7eb9eed9f8b72626693",
       "src": "https://github.com/cursortab/cursortab.nvim"
     },
     "dial.nvim": {
@@ -182,7 +182,7 @@
       "src": "https://github.com/chrisgrieser/nvim-rulebook"
     },
     "nvim-scrollbar": {
-      "rev": "ef02fbcfa305d82398d7b93ab7a3eef5202f6b33",
+      "rev": "6e47c3a57ca6604c66000874fe1caca828731ae9",
       "src": "https://github.com/petertriho/nvim-scrollbar",
       "version": "'refactor/v2'"
     },
@@ -216,7 +216,7 @@
       "src": "https://github.com/chrisgrieser/nvim-various-textobjs"
     },
     "nvim-web-devicons": {
-      "rev": "dad71387de386a946b123079d0e53f23028f3abd",
+      "rev": "09d1324e264c6950262dbe02a9bce2933a6800db",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
     },
     "plenary.nvim": {
