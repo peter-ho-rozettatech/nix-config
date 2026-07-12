@@ -5,13 +5,13 @@
 }:
 buildGoModule rec {
   pname = "mermaid-ascii";
-  version = "1.4.0-unstable-2026-07-10";
+  version = "1.4.0-unstable-2026-07-11";
 
   src = fetchFromGitHub {
     owner = "AlexanderGrooff";
     repo = "mermaid-ascii";
-    rev = "232e79284adcad80fa29cdb3c526147e76eb3950";
-    hash = "sha256-76LH0eUgoxVWba5qBYUa+19miW6iLBRqoZ2wmd39BWQ=";
+    rev = "1ab2a8f77f1bbee328b6554cfacc29449cee26ba";
+    hash = "sha256-3F7Dj/fAaW+5M1qrlBD6WNT4M7Rn3hKuCmHGRC0Eeys=";
   };
 
   vendorHash = "sha256-aB9sbTtlHbptM2995jizGFtSmEIg3i8zWkXz1zzbIek=";
