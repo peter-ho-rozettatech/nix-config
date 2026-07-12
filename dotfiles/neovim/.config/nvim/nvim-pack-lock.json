@@ -161,10 +161,6 @@
       "rev": "e4c7af0211866162d999ce0bdd6a029302e19139",
       "src": "https://github.com/brenoprata10/nvim-highlight-colors"
     },
-    "nvim-hlslens": {
-      "rev": "be2d7b2be01860b5445a007ff2bc72b29896db6b",
-      "src": "https://github.com/kevinhwang91/nvim-hlslens"
-    },
     "nvim-lint": {
       "rev": "a219b2c9e5b4765e5c845aba119dad55806fcaf1",
       "src": "https://github.com/mfussenegger/nvim-lint"
@@ -186,8 +182,9 @@
       "src": "https://github.com/chrisgrieser/nvim-rulebook"
     },
     "nvim-scrollbar": {
-      "rev": "f8e87b96cd6362ef8579be456afee3b38fd7e2a8",
-      "src": "https://github.com/petertriho/nvim-scrollbar"
+      "rev": "ef02fbcfa305d82398d7b93ab7a3eef5202f6b33",
+      "src": "https://github.com/petertriho/nvim-scrollbar",
+      "version": "'refactor/v2'"
     },
     "nvim-spider": {
       "rev": "7f021426d4a615ea8f11cabed434b1f20376abae",

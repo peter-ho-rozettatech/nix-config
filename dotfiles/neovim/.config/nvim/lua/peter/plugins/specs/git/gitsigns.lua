@@ -82,6 +82,6 @@ return {
             end,
         })
 
-        require("scrollbar.handlers.gitsigns").setup()
+        -- require("scrollbar.handlers.gitsigns").setup()
     end,
 }
