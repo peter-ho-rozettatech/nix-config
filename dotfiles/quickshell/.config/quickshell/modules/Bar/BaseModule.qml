@@ -21,6 +21,7 @@ Rectangle {
 
     property alias text: content.text
     property alias textColor: content.color
+    property alias textFormat: content.textFormat
     property alias font: content.font
     property alias horizontalAlignment: content.horizontalAlignment
     property alias verticalAlignment: content.verticalAlignment

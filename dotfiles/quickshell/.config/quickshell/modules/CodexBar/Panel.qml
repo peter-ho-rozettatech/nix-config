@@ -14,7 +14,6 @@ OverlayHost {
     id: root
 
     required property var usageModel
-    property var mostCriticalRow
     property bool busy
     required property QtObject colors
     required property QtObject fontsConfig

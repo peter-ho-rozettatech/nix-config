@@ -10,6 +10,7 @@
 //   - Each segment: { provider, source, error?:{kind,message,code}, usage?:{...} }
 //   - codexbar NORMALIZES quota providers (Codex, z.ai, ...) into one shape:
 //       usage.primary / usage.secondary = { usedPercent, windowMinutes, resetsAt, resetDescription }
+//     Either window may be null; a secondary-only window is promoted for display.
 //     So Codex and z.ai share one mapper. (The docs' data.limits[]/TOKENS_LIMIT
 //     describe the raw BigModel API; codexbar normalizes them away.)
 //   - OpenRouter is a cost row under usage.openRouterUsage (balance /
@@ -194,14 +195,18 @@ function errorRow(provider, message) {
 
 // codexbar normalizes quota providers (Codex, z.ai, ...) into one shape:
 //   usage.primary / usage.secondary = { usedPercent, windowMinutes, resetsAt, resetDescription }
+// When primary is unavailable, promote secondary so consumers still get one
+// displayable and rankable window without rendering it twice.
 function mapQuota(item, provider, now) {
     var usage = item && item.usage;
-    if (!usage || !usage.primary)
+    if (!usage || (!usage.primary && !usage.secondary))
         return null;
+    var primary = usage.primary || usage.secondary;
+    var secondary = usage.primary ? usage.secondary : null;
     var account = usage.accountEmail
         || (usage.identity && usage.identity.accountEmail)
         || "";
-    var row = quotaRow(provider, account, usage.primary, usage.secondary || {}, now);
+    var row = quotaRow(provider, account, primary, secondary || {}, now);
     // Codex grants free rate-limit reset credits; surface the count when > 0.
     var credits = usage.codexResetCredits && usage.codexResetCredits.availableCount;
     if (typeof credits === "number" && credits > 0)
@@ -245,16 +250,14 @@ function mapProvider(item, now) {
 
 // --- entry point -------------------------------------------------------------
 
-// parseAll(output[, now]) -> { rows:[...], mostCritical: row|null }
+// parseAll(output[, now]) -> { rows:[...], barSummary:{...} }
 //
 // One row per array segment. Error segments become error rows so the UI can
-// show "—" / a clean message instead of crashing. mostCritical is the
-// highest-percent quota row (cost/error rows are excluded); ties keep display
-// order. A row whose percent couldn't be determined (percent < 0) is skipped
-// for ranking purposes but still rendered.
+// show "—" / a clean message instead of crashing. barSummary counts exhausted
+// quota rows and selects the highest-usage row that remains below 100%.
 function parseAll(output, now) {
     now = now !== undefined ? now : Date.now();
-    var result = { rows: [], mostCritical: null };
+    var result = { rows: [], barSummary: summarizeQuotaRows([]) };
 
     var trimmed = String(output || "").trim();
     if (trimmed === "")
@@ -289,23 +292,52 @@ function parseAll(output, now) {
         }
     }
 
-    result.mostCritical = pickMostCritical(result.rows);
+    result.barSummary = summarizeQuotaRows(result.rows);
     return result;
 }
 
-function pickMostCritical(rows) {
-    var best = null;
-    for (var i = 0; i < rows.length; i++) {
-        var r = rows[i];
-        if (r.kind !== "quota" || r.percent < 0)
-            continue;
-        if (!best || r.percent > best.percent)
-            best = r;
+function effectiveQuotaPercent(row) {
+    var best = -1;
+    var values = [row.percent, row.secondaryPercent];
+    for (var i = 0; i < values.length; i++) {
+        var value = Number(values[i]);
+        if (!isNaN(value) && value >= 0 && value > best)
+            best = value;
     }
     return best;
 }
 
-// parseProviders(output[, now]) -> { rows:[...], mostCritical: row|null }
+function summarizeQuotaRows(rows) {
+    var summary = {
+        exhaustedCount: 0,
+        nextRow: null,
+        nextPercent: -1,
+        allExhausted: false
+    };
+    var quotaCount = 0;
+
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        if (row.kind !== "quota")
+            continue;
+        quotaCount++;
+
+        var percent = effectiveQuotaPercent(row);
+        if (percent >= 100) {
+            summary.exhaustedCount++;
+            continue;
+        }
+        if (percent >= 0 && (!summary.nextRow || percent > summary.nextPercent)) {
+            summary.nextRow = row;
+            summary.nextPercent = percent;
+        }
+    }
+
+    summary.allExhausted = quotaCount > 0 && summary.exhaustedCount === quotaCount;
+    return summary;
+}
+
+// parseProviders(output[, now]) -> { rows:[...], barSummary:{...} }
 //
 // The service makes one all-providers call (`codexbar usage`) plus, when Codex
 // is present, a second `--provider codex --all-accounts` call so both Codex
@@ -318,7 +350,7 @@ function pickMostCritical(rows) {
 // chunks) is not duplicated.
 function parseProviders(output, now) {
     now = now !== undefined ? now : Date.now();
-    var merged = { rows: [], mostCritical: null };
+    var merged = { rows: [], barSummary: summarizeQuotaRows([]) };
     var text = String(output || "");
     if (text.trim() === "")
         return merged;
@@ -340,6 +372,6 @@ function parseProviders(output, now) {
             }
         }
     }
-    merged.mostCritical = pickMostCritical(merged.rows);
+    merged.barSummary = summarizeQuotaRows(merged.rows);
     return merged;
 }

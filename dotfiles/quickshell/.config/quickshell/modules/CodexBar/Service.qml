@@ -5,9 +5,9 @@ import "codexbar.js" as CodexBar
 // Service — polls `codexbar usage` (every enabled provider in one call)
 // on a timer, plus — when Codex is among the results — a second
 // `--provider codex --all-accounts` call so both Codex accounts stay visible and
-// grouped. Exposes a normalized ListModel + mostCriticalRow for the bar segment
-// + panel. CodexBar owns all provider/auth/API-key state; this is a display
-// layer only.
+// grouped. Exposes a normalized ListModel plus an exhaustion-aware summary for
+// the compact bar. CodexBar owns all provider/auth/API-key state; this is a
+// display layer only.
 Item {
     id: root
 
@@ -21,8 +21,8 @@ Item {
         id: usageModel
     }
 
-    // Highest-percent quota row (cost/error excluded); null until we have data.
-    property var mostCriticalRow: null
+    // Exhausted quota count + highest-usage source still below 100%.
+    property var barSummary: null
     // Latched true the first poll that returns any real (non-error) row — i.e.
     // at least one provider has credentials and answered. The bar segment hides
     // while false (mirrors Battery hiding when upower finds no battery).
@@ -88,7 +88,7 @@ Item {
         usageModel.clear();
         for (var i = 0; parsed.rows && i < parsed.rows.length; i++)
             usageModel.append(parsed.rows[i]);
-        root.mostCriticalRow = parsed.mostCritical || null;
+        root.barSummary = parsed.barSummary || null;
         // Latch configured on the first real row (see property comment above).
         if (!root.configured && parsed.rows) {
             for (var j = 0; j < parsed.rows.length; j++) {
@@ -129,7 +129,6 @@ Item {
     Panel {
         open: root.panelOpen
         usageModel: usageModel
-        mostCriticalRow: root.mostCriticalRow
         busy: root.busy
         lastUpdated: root.lastUpdated
         refreshIntervalSec: codexbarConfig.refreshIntervalSec
