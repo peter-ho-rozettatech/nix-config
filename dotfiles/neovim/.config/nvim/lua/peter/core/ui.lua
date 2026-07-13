@@ -5,7 +5,7 @@ local ui2 = require("vim._core.ui2")
 ui2.enable({
     enable = true,
     msg = {
-        targets = "pager",
+        targets = "msg",
         cmd = {
             height = 0.3,
         },
