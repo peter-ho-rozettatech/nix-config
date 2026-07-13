@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "5993c435999ca3f07d93db16abd5ac2a9233dc56",
+      "rev": "471351ff9b53d520302c7d37eff8727925380d26",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -34,7 +34,7 @@
       "src": "https://github.com/saghen/blink.lib"
     },
     "blink.pairs": {
-      "rev": "d0f00431105f773ae50cdc0fa03208448f5f829e",
+      "rev": "dd57684daf1297e854e46c85511e7875efb4de75",
       "src": "https://github.com/saghen/blink.pairs"
     },
     "bufjump.nvim": {
@@ -170,7 +170,7 @@
       "src": "https://github.com/chrisgrieser/nvim-lsp-endhints"
     },
     "nvim-lspconfig": {
-      "rev": "5955a100ae7155962330643924e21a798b9bdc91",
+      "rev": "d5b6e3db4c17b0146f63a2fc47e2027a754b2cb1",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-navic": {
@@ -182,7 +182,7 @@
       "src": "https://github.com/chrisgrieser/nvim-rulebook"
     },
     "nvim-scrollbar": {
-      "rev": "2a8ae09ae081b5f535ae4ad98e89d830a0e4c20e",
+      "rev": "8f22e6898976d3abe9e141407fb04d974e99ea87",
       "src": "https://github.com/petertriho/nvim-scrollbar",
       "version": "'refactor/v2'"
     },

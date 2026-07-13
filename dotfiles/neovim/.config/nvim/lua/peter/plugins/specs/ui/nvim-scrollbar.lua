@@ -24,6 +24,9 @@ return {
             providers = {
                 gitsigns = true,
             },
+            -- autohide = {
+            --     enabled = true,
+            -- },
         })
     end,
 }
