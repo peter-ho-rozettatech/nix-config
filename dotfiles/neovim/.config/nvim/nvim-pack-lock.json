@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "471351ff9b53d520302c7d37eff8727925380d26",
+      "rev": "5d3a252f1a96276543996ef7ee96d1957f60e883",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -90,7 +90,7 @@
       "src": "https://github.com/zeioth/garbage-day.nvim"
     },
     "git.nvim": {
-      "rev": "5fa32300a887e31e6a8d9df215817df48e8c0eee",
+      "rev": "a73255ddc7dec043fdb64dfce5178ba54eca8fa4",
       "src": "https://github.com/wsdjeg/git.nvim"
     },
     "gitsigns.nvim": {
@@ -134,7 +134,7 @@
       "src": "https://github.com/chentoast/marks.nvim"
     },
     "mini.nvim": {
-      "rev": "db41c4076105a63caec12612d11228348f55a109",
+      "rev": "fc5c7167adc51d5f39219e86739d5c193b777f44",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "namu.nvim": {
@@ -216,7 +216,7 @@
       "src": "https://github.com/chrisgrieser/nvim-various-textobjs"
     },
     "nvim-web-devicons": {
-      "rev": "09d1324e264c6950262dbe02a9bce2933a6800db",
+      "rev": "0ca28b61a04fe7426cefbdd52c2647ef0e335b5f",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
     },
     "plenary.nvim": {
