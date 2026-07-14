@@ -9,6 +9,7 @@ with pkgs;
   betterfox = callPackage ./betterfox { };
   cpa-manager-plus = callPackage ./cpa-manager-plus { };
   codexbar = callPackage ./codexbar { };
+  cups-brother-mfc9335cdw = callPackage ./cups-brother-mfc9335cdw { };
   figlet-fonts = callPackage ./figlet-fonts { };
   kubectl-prof = callPackage ./kubectl-prof {
     buildGoModule = stablePkgs.buildGo126Module;

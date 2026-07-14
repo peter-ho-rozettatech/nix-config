@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, pkgs, ... }:
 {
   imports = [
     ../base.nix
@@ -12,6 +12,12 @@
   ];
 
   services = {
+    # Discover printers with `ippfind` or at http://localhost:631/admin after rebuilding.
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
     # flatpak = {
     #   enable = true;
     #   remotes = [
@@ -23,7 +29,10 @@
     #   packages = [ ];
     # };
     fwupd.enable = true;
-    printing.enable = true;
+    printing = {
+      enable = true;
+      drivers = [ pkgs.cups-brother-mfc9335cdw ];
+    };
   };
 
   programs.firefox.enable = true;
