@@ -58,7 +58,7 @@ return {
                     require("snacks").picker.files({ cwd = cwd })
                 end, opts("Find Files"))
 
-                vim.keymap.set("n", "<C-s>", function()
+                vim.keymap.set("n", "<C-g>", function()
                     local cwd = get_node_path()
                     require("snacks").picker.grep({ cwd = cwd })
                 end, opts("Live Grep"))
