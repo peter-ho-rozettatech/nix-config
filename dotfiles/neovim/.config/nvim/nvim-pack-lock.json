@@ -89,14 +89,6 @@
       "rev": "2fcc56556281de8ee871a5f3beb9db7ab747ef32",
       "src": "https://github.com/zeioth/garbage-day.nvim"
     },
-    "git.nvim": {
-      "rev": "a73255ddc7dec043fdb64dfce5178ba54eca8fa4",
-      "src": "https://github.com/wsdjeg/git.nvim"
-    },
-    "gitsigns.nvim": {
-      "rev": "31d6fb2d618bca1482b9f274751ead5f03461408",
-      "src": "https://github.com/lewis6991/gitsigns.nvim"
-    },
     "glance.nvim": {
       "rev": "bf86d8b79dce808e65fdb6e9269d0b4ed6d2eefc",
       "src": "https://github.com/dnlhc/glance.nvim"
@@ -112,10 +104,6 @@
     "heirline.nvim": {
       "rev": "fae936abb5e0345b85c3a03ecf38525b0828b992",
       "src": "https://github.com/rebelot/heirline.nvim"
-    },
-    "job.nvim": {
-      "rev": "761495af05a242b00a18b8ae926ee41c18da3645",
-      "src": "https://github.com/wsdjeg/job.nvim"
     },
     "lazydev.nvim": {
       "rev": "ff2cbcba459b637ec3fd165a2be59b7bbaeedf0d",
@@ -142,12 +130,8 @@
       "src": "https://github.com/bassamsdata/namu.nvim"
     },
     "neogit": {
-      "rev": "a0847c4bea5a5f92a36e3f3bf7da99d7d685d3ac",
+      "rev": "95295edaa26e8e8db5a9bc4119256e602311c6bc",
       "src": "https://github.com/NeogitOrg/neogit"
-    },
-    "notify.nvim": {
-      "rev": "356a53a66b044395557b16d19ffc722bd0debe8f",
-      "src": "https://github.com/wsdjeg/notify.nvim"
     },
     "nui.nvim": {
       "rev": "de740991c12411b663994b2860f1a4fd0937c130",

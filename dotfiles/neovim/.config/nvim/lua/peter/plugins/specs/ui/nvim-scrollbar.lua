@@ -22,7 +22,7 @@ return {
             --     search = true,
             -- },
             providers = {
-                gitsigns = true,
+                -- gitsigns = true,
             },
             -- autohide = {
             --     enabled = true,
