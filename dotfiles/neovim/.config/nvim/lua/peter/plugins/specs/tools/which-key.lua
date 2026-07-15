@@ -24,7 +24,6 @@ return {
                 { "<leader>b", group = "buffer" },
                 { "<leader>c", group = "code" },
                 { "<leader>g", group = "git" },
-                { "<leader>h", group = "hunks" },
                 { "<leader>i", group = "insert" },
                 { "<leader>l", group = "lsp" },
                 { "<leader>L", group = "lspc" },

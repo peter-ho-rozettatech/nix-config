@@ -1,33 +1,36 @@
-local conditions = require("heirline.conditions")
-
 return {
-    condition = conditions.is_git_repo,
+    condition = function()
+        return vim.b.minigit_summary ~= nil
+    end,
+    update = { "User", pattern = { "MiniGitUpdated", "MiniDiffUpdated" } },
     init = function(self)
-        self.status_dict = vim.b.gitsigns_status_dict
+        self.git_summary = vim.b.minigit_summary or {}
+        self.diff_summary = vim.b.minidiff_summary or {}
     end,
     {
         provider = function(self)
-            return " " .. self.status_dict.head .. " "
+            local branch = self.git_summary.head_name
+            return branch and (" " .. branch .. " ") or ""
         end,
         hl = { bold = true },
     },
     {
         provider = function(self)
-            local count = self.status_dict.added or 0
+            local count = self.diff_summary.add or 0
             return count > 0 and ("+" .. count .. " ")
         end,
         hl = { fg = "git_add" },
     },
     {
         provider = function(self)
-            local count = self.status_dict.removed or 0
+            local count = self.diff_summary.delete or 0
             return count > 0 and ("-" .. count .. " ")
         end,
         hl = { fg = "git_del" },
     },
     {
         provider = function(self)
-            local count = self.status_dict.changed or 0
+            local count = self.diff_summary.change or 0
             return count > 0 and ("~" .. count .. " ")
         end,
         hl = { fg = "git_change" },

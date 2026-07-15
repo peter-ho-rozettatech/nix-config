@@ -114,6 +114,16 @@ return {
                 inside_last = "iL",
             },
         })
+        require("mini.diff").setup({
+            view = {
+                style = "sign",
+                signs = {
+                    add = "│",
+                    change = "│",
+                    delete = "│",
+                },
+            },
+        })
         require("mini.files").setup({
             mappings = {
                 go_in = "<CR>",
@@ -124,6 +134,8 @@ return {
                 use_as_default_explorer = false,
             },
         })
+        require("mini.git").setup()
+        vim.cmd([[cabbrev <expr> G getcmdtype() == ':' && getcmdline() ==# 'G' ? 'Git' : 'G']])
         require("mini.icons").setup()
         require("mini.splitjoin").setup({
             mappings = {

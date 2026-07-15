@@ -69,7 +69,8 @@ return {
                 return
             end
 
-            local hunks = require("gitsigns").get_hunks()
+            local data = require("mini.diff").get_buf_data(bufnr)
+            local hunks = data and data.hunks
 
             if hunks == nil then
                 conform_spinner.finish(bufnr, token, nil)
@@ -77,35 +78,30 @@ return {
             end
 
             local function format_range()
-                if next(hunks) == nil then
-                    conform_spinner.finish(bufnr, token, nil)
-                    return
-                end
-                local hunk = nil
-                while next(hunks) ~= nil and (hunk == nil or hunk.type == "delete") do
-                    hunk = table.remove(hunks)
+                while #hunks > 0 do
+                    local hunk = table.remove(hunks, 1)
+                    if hunk.buf_count > 0 then
+                        local first = hunk.buf_start
+                        local last = first + hunk.buf_count - 1
+                        local last_hunk_line = vim.api.nvim_buf_get_lines(bufnr, last - 1, last, true)[1]
+                        local range = { start = { first, 0 }, ["end"] = { last, last_hunk_line:len() } }
+
+                        local format_opts = get_format_opts({ bufnr = bufnr, range = range })
+                        require("conform").format(format_opts, function(err)
+                            if err then
+                                conform_spinner.finish(bufnr, token, err)
+                                return
+                            end
+
+                            vim.defer_fn(function()
+                                format_range()
+                            end, 1)
+                        end)
+                        return
+                    end
                 end
 
-                if hunk ~= nil and hunk.type ~= "delete" then
-                    local start = hunk.added.start
-                    local last = start + hunk.added.count
-                    local last_hunk_line = vim.api.nvim_buf_get_lines(0, last - 2, last - 1, true)[1]
-                    local range = { start = { start, 0 }, ["end"] = { last - 1, last_hunk_line:len() } }
-
-                    local format_opts = get_format_opts({ range = range })
-                    require("conform").format(format_opts, function(err)
-                        if err then
-                            conform_spinner.finish(bufnr, token, err)
-                            return
-                        end
-
-                        vim.defer_fn(function()
-                            format_range()
-                        end, 1)
-                    end)
-                else
-                    conform_spinner.finish(bufnr, token)
-                end
+                conform_spinner.finish(bufnr, token, nil)
             end
 
             format_range()

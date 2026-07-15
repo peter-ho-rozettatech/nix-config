@@ -599,6 +599,13 @@ return {
             desc = "Stash",
         },
         {
+            "<leader>gt",
+            function()
+                require("snacks").git.blame_line()
+            end,
+            desc = "Line Blame",
+        },
+        {
             "<leader>guf",
             function()
                 require("snacks").gitbrowse({ what = "file" })
