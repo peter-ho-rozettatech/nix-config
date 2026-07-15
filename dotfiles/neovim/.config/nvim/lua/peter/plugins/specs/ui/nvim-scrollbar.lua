@@ -16,6 +16,9 @@ return {
                 GitAdd = { text = "│" },
                 GitChange = { text = "│" },
                 GitDelete = { text = "│" },
+                MiniDiffAdd = { text = "│" },
+                MiniDiffChange = { text = "│" },
+                MiniDiffDelete = { text = "│" },
             },
             excluded_filetypes = require("peter.core.filetypes").excludes,
             -- handlers = {
@@ -23,6 +26,7 @@ return {
             -- },
             providers = {
                 -- gitsigns = true,
+                mini_diff = true,
             },
             -- autohide = {
             --     enabled = true,
