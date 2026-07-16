@@ -21,6 +21,84 @@ local get_scratch_path = function()
     end
 end
 
+local terminal_section = function(self, output)
+    local lines = vim.split(output, "\n")
+    for i = #lines, 1, -1 do
+        if lines[i]:match("^%s*$") then
+            lines[i] = nil
+        else
+            break
+        end
+    end
+    local height = math.max(1, #lines)
+
+    local width = 0
+    for _, line in ipairs(lines) do
+        local stripped = line:gsub("\27%[[0-9;]*m", ""):gsub("%s+$", "")
+        width = math.max(width, vim.api.nvim_strwidth(stripped))
+    end
+    width = math.min(width, self.opts.width)
+
+    local col = math.floor((self.opts.width - width) / 2)
+
+    return {
+        pane = 2,
+        render = function(_, pos)
+            local buf = vim.api.nvim_create_buf(false, true)
+            vim.bo[buf].buftype = "nofile"
+            vim.api.nvim_chan_send(vim.api.nvim_open_term(buf, {}), output)
+            local win = vim.api.nvim_open_win(buf, false, {
+                bufpos = { pos[1] - 1, pos[2] + 1 },
+                col = col,
+                focusable = false,
+                height = height,
+                noautocmd = true,
+                relative = "win",
+                row = 0,
+                style = "minimal",
+                width = width,
+                win = self.win,
+                border = "none",
+            })
+            vim.wo[win].winhighlight = "Normal:SnacksDashboardNormal,NormalFloat:SnacksDashboardNormal"
+            local close = vim.schedule_wrap(function()
+                pcall(vim.api.nvim_win_close, win, true)
+                pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end)
+            self.on("UpdatePre", close, self.augroup)
+            self.on("Closed", close, self.augroup)
+        end,
+        text = ("\n"):rep(height - 1),
+    }
+end
+
+local pokemon = function(self)
+    if vim.fn.executable("pokemon-colorscripts") ~= 1 then
+        return
+    end
+
+    -- run with the title so we can capture the name to show below the pokemon
+    local output = vim.fn.system({ "pokemon-colorscripts", "--random" })
+    local lines = vim.split(output, "\n")
+    local name = vim.trim(lines[1] or "")
+    local art = #lines > 1 and table.concat(vim.list_slice(lines, 2, #lines), "\n") or output
+
+    local art_section = terminal_section(self, art)
+
+    if name == "" then
+        return art_section
+    end
+
+    return {
+        art_section,
+        {
+            pane = 2,
+            align = "center",
+            text = name:gsub("^%l", string.upper),
+        },
+    }
+end
+
 return {
     "folke/snacks.nvim",
     priority = 1000,
@@ -135,6 +213,7 @@ return {
                         ttl = 5 * 60,
                     },
                     -- right
+                    -- pokemon,
                     -- {
                     --     pane = 2,
                     --     section = "terminal",
