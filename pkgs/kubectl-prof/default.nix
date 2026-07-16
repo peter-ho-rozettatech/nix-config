@@ -5,16 +5,16 @@
 }:
 buildGoModule rec {
   pname = "kubectl-prof";
-  version = "2.2.0-unstable-2026-05-18";
+  version = "2.2.0-unstable-2026-07-15";
 
   src = fetchFromGitHub {
     owner = "josepdcs";
     repo = "kubectl-prof";
-    rev = "54102918596c48e6e0d4e453361f958907db9db8";
-    hash = "sha256-78ZNw3SjFYFAQu6rlpF7d3nhVsousy6qRceUKCvg1Rw=";
+    rev = "08ba8ec65bdfafd5f9e0b07a75f87e61cb5f3eae";
+    hash = "sha256-NckHEhE+hAJ2fwqgZ7pmY0jIE1Lf9QalZE1UH/KDlko=";
   };
 
-  vendorHash = "sha256-XYIc0J10VDVtcMMnuizD/pwDOTI/kBVlOgSQsjsi1IM=";
+  vendorHash = "sha256-Ckt/nN66dUIDovnhDhimLyJm2aB79A87cxpYDv/bxd8=";
 
   subPackages = [ "cmd/cli" ];
 
