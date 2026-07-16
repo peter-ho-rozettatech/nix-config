@@ -184,6 +184,7 @@ return {
                             desc = "Recent Files",
                             action = ":lua Snacks.dashboard.pick('oldfiles')",
                         },
+                        { icon = " ", key = "s", desc = "Git Status", action = ":ToggleNeogit" },
                         { icon = " ", key = "q", desc = "Quit", action = ":qa" },
                     },
                     header = vim.fn.executable("figlet") == 1
@@ -196,22 +197,22 @@ return {
                     { section = "header" },
                     { section = "keys", gap = 1, padding = 1 },
                     { icon = " ", title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
-                    {
-                        icon = " ",
-                        title = "Git Status",
-                        section = "terminal",
-                        key = "s",
-                        desc = "Git Status",
-                        action = ":ToggleNeogit",
-                        enabled = function()
-                            return snacks.git.get_root() ~= nil
-                        end,
-                        cmd = "git -c color.status=always status --short --branch --renames",
-                        height = 10,
-                        indent = 1,
-                        padding = 1,
-                        ttl = 5 * 60,
-                    },
+                    -- {
+                    --     icon = " ",
+                    --     title = "Git Status",
+                    --     section = "terminal",
+                    --     key = "s",
+                    --     desc = "Git Status",
+                    --     action = ":ToggleNeogit",
+                    --     enabled = function()
+                    --         return snacks.git.get_root() ~= nil
+                    --     end,
+                    --     cmd = "git -c color.status=always status --short --branch --renames",
+                    --     height = 10,
+                    --     indent = 1,
+                    --     padding = 1,
+                    --     ttl = 5 * 60,
+                    -- },
                     -- right
                     -- pokemon,
                     -- {
