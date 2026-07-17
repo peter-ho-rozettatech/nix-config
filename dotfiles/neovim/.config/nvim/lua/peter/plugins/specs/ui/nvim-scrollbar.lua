@@ -7,6 +7,8 @@ return {
         local colors = require("peter.plugins.colors")
 
         require("scrollbar").setup({
+            float = { placement = { anchor = "NW" } },
+            layout = { direction = "auto", columns = { { "track", "thumb", "marks" } } },
             -- folds = false,
             -- handle = {
             --     blend = 10,
