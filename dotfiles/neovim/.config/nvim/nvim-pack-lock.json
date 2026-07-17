@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "57e36f1257dd36a7d4175eda6cd6447bd6f963f6",
+      "rev": "50f187026e01e74af78f8c68a45530f4e4a03837",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -166,7 +166,7 @@
       "src": "https://github.com/chrisgrieser/nvim-rulebook"
     },
     "nvim-scrollbar": {
-      "rev": "2d430da697c6975cd266eece665965058bf61bfc",
+      "rev": "7fbca5c037c5c12ea9a4b4f4c5ecd9bf817dc4eb",
       "src": "https://github.com/petertriho/nvim-scrollbar",
       "version": "'refactor/v2'"
     },
@@ -236,7 +236,7 @@
       "src": "https://github.com/tiagovla/scope.nvim"
     },
     "smart-backspace.nvim": {
-      "rev": "e8fd6e01f10d64a78403d6d27c9bbc746631afc1",
+      "rev": "06121e57027ae4a6a444817d005ce1b475004ccd",
       "src": "https://github.com/qwavies/smart-backspace.nvim"
     },
     "snacks.nvim": {
