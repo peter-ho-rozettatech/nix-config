@@ -236,6 +236,7 @@ in
       ];
     };
     crush.enable = false;
+    hallmark.enable = true;
     impeccable.enable = true;
     jscpd.enable = true;
     plannotator.enable = true;

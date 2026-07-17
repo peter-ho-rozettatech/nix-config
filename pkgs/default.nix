@@ -11,6 +11,7 @@ with pkgs;
   codexbar = callPackage ./codexbar { };
   cups-brother-mfc9335cdw = callPackage ./cups-brother-mfc9335cdw { };
   figlet-fonts = callPackage ./figlet-fonts { };
+  hallmark = callPackage ./hallmark { };
   kubectl-prof = callPackage ./kubectl-prof {
     buildGoModule = stablePkgs.buildGo126Module;
   };
