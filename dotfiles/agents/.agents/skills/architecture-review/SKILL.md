@@ -63,10 +63,14 @@ Read these bundled files as needed:
 8. Produce brief recommendations, not a full implementation plan, unless the user explicitly asks for planning or code changes.
 
 9. Save the review.
-   - Choose a concise kebab-case `<review-name>` based on the reviewed scope or focus (for example `auth-boundary` or `import-pipeline`).
-   - Write the review to `.artifacts/reviews/<review-name>/REVIEW.md`, creating `.artifacts/<review-name>/` if it does not already exist.
-   - If a related `.artifacts/reviews/<review-name>/` already exists for this work (for example a `PLAN.md` from the planner skill or `TASKS.md` from plan-to-tasks), reuse that directory so the review sits beside the plan and tasks it informs.
-   - If `REVIEW.md` already exists, read it first and update it deliberately rather than blindly overwriting prior findings.
+   - Choose the save mode before writing. New-review mode is the default; a request to review or rescan the same scope again still creates a new artifact.
+   - Use revision mode only when the user explicitly asks to edit, revise, or update an existing review and either provides its exact path or unambiguously refers to a review created earlier in the current conversation. Ask which review to revise if the target is ambiguous.
+   - In revision mode, modify only the identified `REVIEW.md` in place. Do not create a timestamped replacement unless the user asks for a new version, and never move or delete the review directory.
+   - In new-review mode, choose a concise kebab-case `<review-name>` based on the reviewed scope or focus (for example `auth-boundary` or `import-pipeline`). Generate a save-time timestamp in `YYYYMMDD-HHMMSS` form and write the review to `.artifacts/reviews/<review-name>-<timestamp>/REVIEW.md`.
+   - Check that the complete new-review destination directory does not already exist before writing. If it exists, append `-2`, `-3`, and so on until the destination is unused. Create only that new directory.
+   - The new destination is the active review for the current invocation and may be edited as needed until the response is finalized.
+   - Treat every other existing review as append-only history: never edit, overwrite, move, or delete it.
+   - Keep related plans, tasks, and earlier reviews in their existing directories. Refer to them by path inside the new review when useful instead of colocating the new review with them.
    - Skip saving only when the prompt was an ordinary bug/security/style review with no architecture angle, where this skill's output format does not apply.
 
 ## Recommendation Standard
@@ -97,7 +101,7 @@ Use ownership language in the final recommendation. If terms such as interface, 
 
 ## Output
 
-Write the review to `.artifacts/reviews/<review-name>/REVIEW.md` using the format in `references/output-format.md` (see Process step 9 for how to choose `<review-name>` and where the file lives).
+Use the format in `references/output-format.md`. In new-review mode, write to a new `.artifacts/reviews/<review-name>-<timestamp>/REVIEW.md` using the collision-safe naming rules in Process step 9. In explicit revision mode, update only the identified existing `REVIEW.md`.
 
 `REVIEW.md` contains:
 
@@ -117,6 +121,7 @@ After writing `REVIEW.md`, summarize the saved file path, the top pick, and any 
 ## Discipline
 
 - Cite code, not vibes.
+- Preserve review history: only the active new review or explicit revision target is writable. Every other existing file and directory under `.artifacts/reviews/` is a read-only input; do not modify, move, or delete it.
 - Read project context when it would improve the review, but do not assume a specific docs layout or companion skill.
 - Make every recommendation self-contained; do not assume the reader knows this skill's vocabulary.
 - Separate evidence from inference. It is fine to say what the code suggests, but label uncertainty clearly.
