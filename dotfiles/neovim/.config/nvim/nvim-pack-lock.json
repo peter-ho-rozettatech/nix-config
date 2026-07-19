@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "50f187026e01e74af78f8c68a45530f4e4a03837",
+      "rev": "8fb4a36aebf4ea945cfac4129f41efd0635f5aae",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -64,10 +64,6 @@
     "conform.nvim": {
       "rev": "619363c30309d29ffa631e67c8183f2a72caa373",
       "src": "https://github.com/stevearc/conform.nvim"
-    },
-    "cursortab.nvim": {
-      "rev": "8b50d427d76fd995a08ee7eb9eed9f8b72626693",
-      "src": "https://github.com/cursortab/cursortab.nvim"
     },
     "dial.nvim": {
       "rev": "f2634758455cfa52a8acea6f142dcd6271a1bf57",
@@ -162,11 +158,11 @@
       "src": "https://github.com/SmiteshP/nvim-navic"
     },
     "nvim-rulebook": {
-      "rev": "a55b17d0d66ce174c77821564e1c3e744d67d6df",
+      "rev": "b1b74264e4db3f1d45c4751bc9f5f645bec670f0",
       "src": "https://github.com/chrisgrieser/nvim-rulebook"
     },
     "nvim-scrollbar": {
-      "rev": "8d7ba79e4ac043925c1159652c8c493e3c05d294",
+      "rev": "c8d0c25e52ac14814785b77fd5b3d920b2eb29b9",
       "src": "https://github.com/petertriho/nvim-scrollbar",
       "version": "'refactor/v2'"
     },
@@ -183,7 +179,7 @@
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter-textobjects": {
-      "rev": "851e865342e5a4cb1ae23d31caf6e991e1c99f1e",
+      "rev": "898ee307df58f854d11cd7edd06472574d48014e",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter-textobjects",
       "version": "'main'"
     },
