@@ -325,6 +325,23 @@ detect_wol_mac_from_tv() {
   return 1
 }
 
+detect_onwire_mac_from_neighbor_cache() {
+  local mac_addr=""
+
+  if ! validate_ip "$tv_ip"; then
+    return 1
+  fi
+
+  mac_addr="$(ip neigh show "$tv_ip" 2>/dev/null | awk '/lladdr/ { print $5; exit }')"
+
+  if validate_mac "$mac_addr"; then
+    normalize_mac "$mac_addr"
+    return 0
+  fi
+
+  return 1
+}
+
 update_existing_wol_mac() {
   local new_mac="$1"
   local tmp_file=""
@@ -486,17 +503,42 @@ if [[ -e "$config_file" ]]; then
   tv_mac="$existing_mac"
   tv_input="$existing_input"
   pair_tv
+  detected_device_id_mac=""
+  detected_onwire_mac=""
   if detected_wol_mac="$(detect_wol_mac_from_tv)"; then
-    if validate_mac "$existing_mac" && [[ "$(normalize_mac "$existing_mac")" == "$detected_wol_mac" ]]; then
-      printf 'LG Buddy Wake-on-LAN MAC already matches TV device_id %s.\n' "$detected_wol_mac" >&2
+    detected_device_id_mac="$(normalize_mac "$detected_wol_mac")"
+  fi
+  if detected_wol_mac="$(detect_onwire_mac_from_neighbor_cache)"; then
+    detected_onwire_mac="$(normalize_mac "$detected_wol_mac")"
+  fi
+
+  # Prefer the on-wire neighbour cache MAC: it reflects the Wi-Fi radio the TV
+  # is currently associated on. LG Wi-Fi 6E TVs have multiple radios with
+  # different MACs and may roam between them, while the WebOS-reported device_id
+  # stays pinned to the primary radio. Wake-on-LAN only wakes the currently
+  # associated radio, so the on-wire MAC is the correct target.
+  chosen_mac=""
+  if [[ -n "$detected_onwire_mac" ]]; then
+    chosen_mac="$detected_onwire_mac"
+  elif [[ -n "$detected_device_id_mac" ]]; then
+    chosen_mac="$detected_device_id_mac"
+  fi
+
+  if [[ -n "$chosen_mac" ]]; then
+    if validate_mac "$existing_mac" && [[ "$(normalize_mac "$existing_mac")" == "$chosen_mac" ]]; then
+      printf 'LG Buddy Wake-on-LAN MAC already matches %s.\n' "$chosen_mac" >&2
+    elif [[ -n "$detected_onwire_mac" && -n "$detected_device_id_mac" && "$detected_onwire_mac" != "$detected_device_id_mac" ]]; then
+      update_existing_wol_mac "$chosen_mac"
+      printf 'Updated Wake-on-LAN MAC from %s to %s. The TV is currently on-wire as %s but reports device_id %s; using the on-wire MAC because it targets the active Wi-Fi radio.\n' \
+        "$existing_mac" "$chosen_mac" "$detected_onwire_mac" "$detected_device_id_mac" >&2
     elif validate_mac "$existing_mac" && is_locally_administered_mac "$existing_mac"; then
-      update_existing_wol_mac "$detected_wol_mac"
-      printf 'Updated locally administered Wake-on-LAN MAC %s to TV device_id %s.\n' "$existing_mac" "$detected_wol_mac" >&2
+      update_existing_wol_mac "$chosen_mac"
+      printf 'Updated locally administered Wake-on-LAN MAC %s to %s.\n' "$existing_mac" "$chosen_mac" >&2
     elif validate_mac "$existing_mac"; then
-      printf 'Keeping configured Wake-on-LAN MAC %s; TV device_id is %s.\n' "$existing_mac" "$detected_wol_mac" >&2
+      printf 'Keeping configured Wake-on-LAN MAC %s; on-wire/device_id report %s.\n' "$existing_mac" "$chosen_mac" >&2
     else
-      update_existing_wol_mac "$detected_wol_mac"
-      printf 'Updated missing LG Buddy Wake-on-LAN MAC to TV device_id %s.\n' "$detected_wol_mac" >&2
+      update_existing_wol_mac "$chosen_mac"
+      printf 'Updated missing LG Buddy Wake-on-LAN MAC to %s.\n' "$chosen_mac" >&2
     fi
   fi
   update_existing_screen_restore_policy
@@ -551,15 +593,31 @@ mkdir -p "$config_dir"
 chmod 700 "$config_dir"
 
 pair_tv
+detected_device_id_mac=""
+detected_onwire_mac=""
 if detected_wol_mac="$(detect_wol_mac_from_tv)"; then
+  detected_device_id_mac="$(normalize_mac "$detected_wol_mac")"
+fi
+if detected_wol_mac="$(detect_onwire_mac_from_neighbor_cache)"; then
+  detected_onwire_mac="$(normalize_mac "$detected_wol_mac")"
+fi
+
+# Prefer the on-wire neighbour cache MAC when it disagrees with device_id.
+# LG Wi-Fi 6E TVs roam between radios and only the currently associated radio
+# wakes on Wake-on-LAN.
+if [[ -n "$detected_onwire_mac" && -n "$detected_device_id_mac" && "$detected_onwire_mac" != "$detected_device_id_mac" ]]; then
+  printf 'TV is currently on-wire as %s but reports device_id %s. Using the on-wire MAC for Wake-on-LAN because it targets the active Wi-Fi radio.\n' \
+    "$detected_onwire_mac" "$detected_device_id_mac" >&2
+  tv_mac="$detected_onwire_mac"
+elif [[ -n "$detected_device_id_mac" ]]; then
   if ! validate_mac "$tv_mac"; then
-    printf 'Using TV device_id %s as Wake-on-LAN MAC because no network MAC was discovered.\n' "$detected_wol_mac" >&2
-    tv_mac="$detected_wol_mac"
-  elif [[ "$tv_mac" != "$detected_wol_mac" ]] && is_locally_administered_mac "$tv_mac"; then
-    printf 'Using TV device_id %s as Wake-on-LAN MAC because discovered MAC %s is locally administered.\n' "$detected_wol_mac" "$tv_mac" >&2
-    tv_mac="$detected_wol_mac"
-  elif [[ "$tv_mac" != "$detected_wol_mac" ]]; then
-    printf 'Keeping discovered Wake-on-LAN MAC %s; TV device_id is %s.\n' "$tv_mac" "$detected_wol_mac" >&2
+    printf 'Using TV device_id %s as Wake-on-LAN MAC because no network MAC was discovered.\n' "$detected_device_id_mac" >&2
+    tv_mac="$detected_device_id_mac"
+  elif [[ "$(normalize_mac "$tv_mac")" != "$detected_device_id_mac" ]] && is_locally_administered_mac "$tv_mac"; then
+    printf 'Using TV device_id %s as Wake-on-LAN MAC because discovered MAC %s is locally administered.\n' "$detected_device_id_mac" "$tv_mac" >&2
+    tv_mac="$detected_device_id_mac"
+  elif [[ "$(normalize_mac "$tv_mac")" != "$detected_device_id_mac" ]]; then
+    printf 'Keeping discovered Wake-on-LAN MAC %s; TV device_id is %s.\n' "$tv_mac" "$detected_device_id_mac" >&2
   fi
 fi
 
