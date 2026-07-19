@@ -241,6 +241,7 @@ in
     jscpd.enable = true;
     plannotator.enable = true;
     playwriter.enable = false;
+    repowise.enable = false;
     superpowers.enable = false;
     taste-skill = {
       enable = true;

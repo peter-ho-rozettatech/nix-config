@@ -13,6 +13,7 @@
     ./jscpd.nix
     ./plannotator.nix
     ./playwriter.nix
+    ./repowise.nix
     ./superpowers.nix
     ./taste-skill.nix
   ];

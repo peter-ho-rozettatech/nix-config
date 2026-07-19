@@ -1,6 +1,7 @@
 {
   pkgs ? import <nixpkgs> { },
   stablePkgs,
+  inputs,
   ...
 }:
 with pkgs;
@@ -21,6 +22,9 @@ with pkgs;
   playwriter = callPackage ./playwriter { };
   pybetter = callPackage ./pybetter { inherit pkgs; };
   python-validity = callPackage ./python-validity { };
+  repowise = callPackage ./repowise {
+    inherit (inputs) uv2nix pyproject-nix pyproject-build-systems;
+  };
   sem = callPackage ./sem { };
   sort-package-json = callPackage ./sort-package-json { };
   superpowers = callPackage ./superpowers { };
