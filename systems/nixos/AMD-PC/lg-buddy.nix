@@ -100,6 +100,8 @@ let
     config_dir="$(dirname "$config_file")"
     known_macs_file="$config_dir/known_macs"
     lg_buddy="${pkgs.lg-buddy}/bin/lg-buddy"
+    bscpylgtv="${pkgs.lg-buddy.passthru.bscpylgtv}/bin/bscpylgtvcommand"
+    key_file="${keyFile}"
 
     read_cfg() {
       local key="$1"
@@ -162,6 +164,34 @@ let
       return 1
     }
 
+    run_diagnostic() {
+      # lg-buddy's startup loop only logs "Attempt N failed" and discards the
+      # underlying set_input error, so on overall failure we replay the WebOS
+      # command directly to surface *why* it failed (handshake timeout, auth
+      # refusal, SSL error, ...). Read-only (get_input) so TV state is never
+      # changed, and bounded by `timeout` in case the TV is fully unreachable.
+      local tv_ip neigh diag
+      tv_ip="$(read_cfg tvs_primary_ip)"
+      tv_ip="''${tv_ip:-$(read_cfg tv_ip)}"
+      printf 'lg-buddy-startup-wrapper: --- diagnostic after startup failure ---\n' >&2
+      if [[ -z "$tv_ip" ]]; then
+        printf 'lg-buddy-startup-wrapper: no TV IP in config; skipping diagnostic\n' >&2
+        return 0
+      fi
+      neigh="$(${lib.getBin pkgs.iproute2}/bin/ip neigh show "$tv_ip" 2>/dev/null || true)"
+      printf 'lg-buddy-startup-wrapper: neighbour for %s: %s\n' "$tv_ip" "$neigh" >&2
+      if ${lib.getBin pkgs.iputils}/bin/ping -c 1 -W 1 "$tv_ip" >/dev/null 2>&1; then
+        printf 'lg-buddy-startup-wrapper: %s responds to ICMP (TV network stack is up)\n' "$tv_ip" >&2
+      else
+        printf 'lg-buddy-startup-wrapper: %s does NOT respond to ICMP (TV offline or in deep standby)\n' "$tv_ip" >&2
+      fi
+      if [[ -x "$bscpylgtv" ]]; then
+        printf 'lg-buddy-startup-wrapper: bscpylgtv get_input against %s (reveals the WebOS error lg-buddy hid):\n' "$tv_ip" >&2
+        diag="$(timeout 20 "$bscpylgtv" -p "$key_file" "$tv_ip" get_input 2>&1)" || true
+        printf '%s\n' "$diag" >&2
+      fi
+    }
+
     if [[ "''${#macs_to_try[@]}" -eq 0 ]]; then
       exec "$lg_buddy" startup auto
     fi
@@ -185,6 +215,7 @@ let
 
     printf 'lg-buddy-startup-wrapper: all %d MAC candidate(s) failed\n' \
       "''${#macs_to_try[@]}" >&2
+    run_diagnostic
     exit 1
   '';
 in
@@ -203,7 +234,13 @@ in
     wantedBy = [ "multi-user.target" ];
     restartIfChanged = false;
     environment = lgBuddyEnv // {
-      LG_BUDDY_STARTUP_RETRY_DELAY_SECS = "20";
+      # lg-buddy hardcodes 6 wake attempts and applies this value as a flat
+      # sleep before each one. After a long standby the screen lights fast but
+      # the WebOS SSAPI layer can take a few minutes to accept commands; at 20s
+      # every attempt landed before that window opened (the 19:28 boot exhausted
+      # all 6 by ~144s). 45s spreads the attempts across ~270s so one lands once
+      # WebOS is ready. Safe because Type=oneshot has TimeoutStartSec=infinity.
+      LG_BUDDY_STARTUP_RETRY_DELAY_SECS = "45";
     };
     unitConfig = {
       ConditionPathExists = configFile;
