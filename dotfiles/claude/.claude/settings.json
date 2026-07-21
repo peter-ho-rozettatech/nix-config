@@ -103,7 +103,6 @@
   },
   "disableAgentView": true,
   "disableRemoteControl": true,
-  "disableWorkflows": true,
   "disableArtifact": true,
   "statusLine": {
     "type": "command",
