@@ -7,13 +7,9 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
-  "disableBundledSkills": true,
-  "disableWorkflows": true,
-  "disableRemoteControl": true,
-  "disableClaudeAiConnectors": true,
-  "disableArtifact": true,
-  "disableAgentView": true,
   "model": "opus[1m]",
+  "disableClaudeAiConnectors": true,
+  "disableBundledSkills": true,
   "hooks": {
     "Notification": [
       {
@@ -105,6 +101,10 @@
       }
     ]
   },
+  "disableAgentView": true,
+  "disableRemoteControl": true,
+  "disableWorkflows": true,
+  "disableArtifact": true,
   "statusLine": {
     "type": "command",
     "command": "ccstatusline",
