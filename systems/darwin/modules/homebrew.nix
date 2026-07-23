@@ -79,6 +79,7 @@ in
       # "opgginc/tap/opencode-bar"
       "orbstack"
       "raycast"
+      "reminders-menubar"
       "steipete/tap/codexbar"
       "TabularisDB/tabularis/tabularis"
       # "wezterm"
