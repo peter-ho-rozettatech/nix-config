@@ -6,13 +6,13 @@
   nodejs_22,
 }:
 let
-  version = "1.11.5-unstable-2026-07-22";
+  version = "1.11.6-unstable-2026-07-23";
 
   src = fetchFromGitHub {
     owner = "seakee";
     repo = "CPA-Manager-Plus";
-    rev = "0e78f125328a81dcd9ace6fe76710f7a826da051";
-    hash = "sha256-xkuQWTuiuNPsipsa62iPcnNsafGSB808Lmq7SzJiSbw=";
+    rev = "4785aac812a8b67d3cfb3d75adc3905507f57606";
+    hash = "sha256-pKoZAmctHrmJ/ywUqfDjSG1okIbUelMpimNeg9Px530=";
   };
 
   frontend = buildNpmPackage {

@@ -250,6 +250,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      SuccessExitStatus = [ 1 ];
       # Refresh the Wake-on-LAN MAC before startup so we target the radio the
       # TV is currently associated on (handles Wi-Fi band roaming). Falls
       # through silently if the TV is unreachable at boot.
