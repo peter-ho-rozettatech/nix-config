@@ -13,6 +13,22 @@ return {
         { "<leader>e", "<CMD>NvimTreeFindFileToggle<CR>", desc = "Explorer" },
     },
     config = function()
+        -- Subscribe before `setup()`: it fires `User NvimTreeSetup`
+        -- synchronously, so creating this after would miss the event.
+        local prev = { new_name = "", old_name = "" } -- Prevents duplicate events
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "NvimTreeSetup",
+            callback = function()
+                local events = require("nvim-tree.api").events
+                events.subscribe(events.Event.NodeRenamed, function(data)
+                    if prev.new_name ~= data.new_name or prev.old_name ~= data.old_name then
+                        data = data
+                        require("snacks").rename.on_rename_file(data.old_name, data.new_name)
+                    end
+                end)
+            end,
+        })
+
         require("nvim-tree").setup({
             auto_reload_on_write = false,
             hijack_unnamed_buffer_when_opening = false,
@@ -86,19 +102,5 @@ return {
         -- vim.api.nvim_set_hl(0, "NvimTreeHiddenFolderHL", { link = "Comment" })
         -- vim.api.nvim_set_hl(0, "NvimTreeGitFileIgnoredHL", { link = "Comment" })
         -- vim.api.nvim_set_hl(0, "NvimTreeGitFolderIgnoredHL", { link = "Comment" })
-
-        local prev = { new_name = "", old_name = "" } -- Prevents duplicate events
-        vim.api.nvim_create_autocmd("User", {
-            pattern = "NvimTreeSetup",
-            callback = function()
-                local events = require("nvim-tree.api").events
-                events.subscribe(events.Event.NodeRenamed, function(data)
-                    if prev.new_name ~= data.new_name or prev.old_name ~= data.old_name then
-                        data = data
-                        require("snacks").rename.on_rename_file(data.old_name, data.new_name)
-                    end
-                end)
-            end,
-        })
     end,
 }
