@@ -17,7 +17,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "2a5e4571092db657fa0151116fd86835e7cdcd5a",
+      "rev": "25a398a5bb5ed38db08f3b4cfa2ae832d27957a3",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -54,7 +54,7 @@
       "src": "https://github.com/samir-roy/code-bridge.nvim"
     },
     "codediff.nvim": {
-      "rev": "ee3da10b7d1b9f53f9e34a02d4ffc95b2e94a7e8",
+      "rev": "1c8cc7b6785ec2508dd88ae12302de25afa57656",
       "src": "https://github.com/esmuellert/codediff.nvim"
     },
     "colorful-menu.nvim": {
