@@ -21,7 +21,7 @@
       "src": "https://github.com/vidocqh/auto-indent.nvim"
     },
     "blink-ripgrep.nvim": {
-      "rev": "0bcd72a81f222596297c13923878a2c7fe0749fc",
+      "rev": "2a5e4571092db657fa0151116fd86835e7cdcd5a",
       "src": "https://github.com/mikavilpas/blink-ripgrep.nvim"
     },
     "blink.cmp": {
@@ -30,7 +30,7 @@
       "version": "'v1'"
     },
     "blink.lib": {
-      "rev": "e12366919e3447e4227d61e2ce99e2374de76d6a",
+      "rev": "f55df8a6e0a7acccf45ef0ffbb4ce46110fcf7d0",
       "src": "https://github.com/saghen/blink.lib"
     },
     "blink.pairs": {
@@ -58,7 +58,7 @@
       "src": "https://github.com/samir-roy/code-bridge.nvim"
     },
     "codediff.nvim": {
-      "rev": "f67ccdcc0bcf262821f4c4887ca08f3960499bad",
+      "rev": "ee3da10b7d1b9f53f9e34a02d4ffc95b2e94a7e8",
       "src": "https://github.com/esmuellert/codediff.nvim"
     },
     "colorful-menu.nvim": {
@@ -130,7 +130,7 @@
       "src": "https://github.com/chentoast/marks.nvim"
     },
     "mini.nvim": {
-      "rev": "9d01f392b33fb2ba36fbc87fc0bf4453e63ffb0a",
+      "rev": "ee23d71c02440668cbca5b0cd8640d79d5bc250b",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "namu.nvim": {
@@ -293,7 +293,7 @@
       "src": "https://github.com/junegunn/vim-easy-align"
     },
     "vim-matchup": {
-      "rev": "5e3c4a3274a9766aee520caebb52572c007fc4f8",
+      "rev": "0106b1afd4a2f7e1098037b5ceb161bab7471088",
       "src": "https://github.com/andymass/vim-matchup"
     },
     "vim-repeat": {
