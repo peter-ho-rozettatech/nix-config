@@ -12,10 +12,6 @@
       "rev": "f95674d9a4251ac02f452d5f1861e4422f4652c7",
       "src": "https://github.com/pechorin/any-jump.vim"
     },
-    "arborist.nvim": {
-      "rev": "fdeef56c2840c6772b9f68c5774ed87e9340ec7d",
-      "src": "https://github.com/arborist-ts/arborist.nvim"
-    },
     "auto-indent.nvim": {
       "rev": "46801cf8857d42a20a73c40b0a5d3dfe8b2b6192",
       "src": "https://github.com/vidocqh/auto-indent.nvim"
@@ -189,6 +185,11 @@
     "nvim-tree.lua": {
       "rev": "b2aadda94b107480c48e548d6db51c6840b7b33c",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
+    },
+    "nvim-treesitter": {
+      "rev": "41416e81a6c7f4af4984395bfe0cd8d174e70976",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter",
+      "version": "'main'"
     },
     "nvim-treesitter-textobjects": {
       "rev": "5c7b0263797dfd1bd6202f2b219f3b53a80b2187",

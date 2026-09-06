@@ -41,7 +41,6 @@ local M = {
         "svelte",
         "templ",
         "terraform",
-        "tmux",
         "todotxt",
         "toml",
         "tsx",

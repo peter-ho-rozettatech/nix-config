@@ -400,6 +400,9 @@ function tool:nvim {
         echo_info "Updating vim.pack plugins..."
         nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
         printf '\n'
+        echo_info "Updating TreeSitter parsers..."
+        nvim --headless "+TSUpdateSync" +qa
+        printf '\n'
         echo_info "Running neovim plugin build hooks..."
         run_nvim_build_hooks
         echo_success "Neovim plugins updated"
