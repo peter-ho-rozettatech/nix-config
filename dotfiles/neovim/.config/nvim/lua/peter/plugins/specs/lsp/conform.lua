@@ -70,9 +70,10 @@ return {
             end
 
             local data = require("mini.diff").get_buf_data(bufnr)
-            local hunks = data and data.hunks
+            -- Copy the hunk list; table.remove below must not mutate mini.diff state.
+            local hunks = data and data.hunks and vim.list_extend({}, data.hunks)
 
-            if hunks == nil then
+            if hunks == nil or #hunks == 0 then
                 conform_spinner.finish(bufnr, token, nil)
                 return
             end
@@ -80,24 +81,29 @@ return {
             local function format_range()
                 while #hunks > 0 do
                     local hunk = table.remove(hunks, 1)
-                    if hunk.buf_count > 0 then
+                    if hunk and hunk.buf_count > 0 then
                         local first = hunk.buf_start
                         local last = first + hunk.buf_count - 1
                         local last_hunk_line = vim.api.nvim_buf_get_lines(bufnr, last - 1, last, true)[1]
-                        local range = { start = { first, 0 }, ["end"] = { last, last_hunk_line:len() } }
+                        if last_hunk_line == nil then
+                            -- Hunk no longer maps to a buffer line (e.g. deleted-at-EOF);
+                            -- skip it and continue with the next hunk.
+                        else
+                            local range = { start = { first, 0 }, ["end"] = { last, last_hunk_line:len() } }
 
-                        local format_opts = get_format_opts({ bufnr = bufnr, range = range })
-                        require("conform").format(format_opts, function(err)
-                            if err then
-                                conform_spinner.finish(bufnr, token, err)
-                                return
-                            end
+                            local format_opts = get_format_opts({ bufnr = bufnr, range = range })
+                            require("conform").format(format_opts, function(err)
+                                if err then
+                                    conform_spinner.finish(bufnr, token, err)
+                                    return
+                                end
 
-                            vim.defer_fn(function()
-                                format_range()
-                            end, 1)
-                        end)
-                        return
+                                vim.defer_fn(function()
+                                    format_range()
+                                end, 1)
+                            end)
+                            return
+                        end
                     end
                 end
 
@@ -133,10 +139,20 @@ return {
 
         local prettier = { "prettierd", "prettier", stop_after_first = true }
         -- local javascript_formatters = with_prettier_formatter({ "eslint_d" })
-        local javascript_formatters = vim.tbl_extend("force", prettier, { lsp_format = "first" })
+        local prettier_fallback = vim.tbl_extend("force", prettier, { lsp_format = "first" })
+        local deno_formatter = with_prettier_formatter({ "deno_fmt" })
 
-        if vim.g.has_deno then
-            javascript_formatters = with_prettier_formatter({ "deno_fmt" })
+        -- Per-buffer Deno-vs-Prettier choice: vim.g.has_deno only says whether the
+        -- binary exists. Detect deno.json/deno.jsonc upward from the buffer so
+        -- mixed repos format with the right tool.
+        local function javascript_formatters(bufnr)
+            local filename = bufnr and vim.api.nvim_buf_get_name(bufnr) or ""
+            local path = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+            local deno_root = vim.fs.find({ "deno.json", "deno.jsonc" }, { path = path, upward = true })[1]
+            if deno_root then
+                return deno_formatter(bufnr)
+            end
+            return prettier_fallback
         end
 
         local formatters_by_ft = {

@@ -45,31 +45,50 @@ return {
 
         local augroup = vim.api.nvim_create_augroup("Lint", {})
 
+        -- Debounce that carries args.buf through to fire time, so fast buffer
+        -- switches lint the buffer that triggered the event, not whatever is
+        -- current when the timer fires. This version also buf_calls the target
+        -- so lint.try_lint (which uses the current buffer) hits the right one.
+        local function debounced_lint(filter, ms)
+            local run = run_linters(filter)
+            local timer = utils.new_timer()
+            local pending_bufnr = nil
+            return function(args)
+                pending_bufnr = args and args.buf or vim.api.nvim_get_current_buf()
+                timer:stop()
+                timer:start(
+                    ms,
+                    0,
+                    vim.schedule_wrap(function()
+                        local bufnr = pending_bufnr
+                        pending_bufnr = nil
+                        if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                            vim.api.nvim_buf_call(bufnr, function()
+                                run(bufnr)
+                            end)
+                        end
+                    end)
+                )
+            end
+        end
+
         vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "TextChanged", "InsertLeave" }, {
             group = augroup,
-            callback = utils.debounce(
-                run_linters(function(ctx, linter)
-                    return linter
-                        and not (type(linter) == "table" and linter.condition and not linter.condition(ctx))
-                        and not linter.defer
-                end),
-                utils.new_timer(),
-                300
-            ),
+            callback = debounced_lint(function(ctx, linter)
+                return linter
+                    and not (type(linter) == "table" and linter.condition and not linter.condition(ctx))
+                    and not linter.defer
+            end, 300),
             desc = "Run linters",
         })
 
         vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
             group = augroup,
-            callback = utils.debounce(
-                run_linters(function(ctx, linter)
-                    return linter
-                        and not (type(linter) == "table" and linter.condition and not linter.condition(ctx))
-                        and linter.defer
-                end),
-                utils.new_timer(),
-                1000
-            ),
+            callback = debounced_lint(function(ctx, linter)
+                return linter
+                    and not (type(linter) == "table" and linter.condition and not linter.condition(ctx))
+                    and linter.defer
+            end, 1000),
             desc = "Run deferred linters (on read/write only)",
         })
     end,

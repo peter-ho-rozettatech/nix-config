@@ -1,7 +1,7 @@
 local function python3_host_prog_job(cmd)
     vim.fn.jobstart(cmd, {
         on_stdout = function(_, data, _)
-            g.python3_host_prog = string.gsub(data[1], "\n", "")
+            vim.g.python3_host_prog = string.gsub(data[1], "\n", "")
         end,
     })
 end
@@ -32,37 +32,37 @@ local function exec_loaded_nvim_treesitter()
     vim.api.nvim_exec_autocmds("User", { pattern = "LoadedNvimTreesitter" })
 end
 
-local function start_treesitter(event)
-    local buf = event.buf
+local function notify_treesitter_loaded(event)
+    if did_load_nvim_treesitter then
+        return
+    end
 
+    local buf = event.buf
     if utils.is_excludes_buf(buf) or utils.file_is_big(buf) then
         return
     end
 
-    local ft = vim.bo[buf].filetype
-    if ft == "" then
-        ft = vim.filetype.match({ buf = buf })
-    end
-
-    if not ft or ft == "" then
+    if vim.bo[buf].filetype == "" then
         return
     end
 
-    local lang = vim.treesitter.language.get_lang(ft)
-    if lang and pcall(vim.treesitter.start, buf, lang) then
-        exec_loaded_nvim_treesitter()
-    else
-        vim.bo[buf].syntax = ft
-    end
+    -- Deferred: the spec's own FileType handler starts treesitter during
+    -- this same event dispatch, so check once event processing completes.
+    vim.schedule(function()
+        if not vim.api.nvim_buf_is_valid(buf) then
+            return
+        end
 
-    if vim.v.vim_did_enter == 0 then
-        vim.cmd.redraw()
-    end
+        local ok, parser = pcall(vim.treesitter.get_parser, buf, nil, { error = false })
+        if ok and parser then
+            exec_loaded_nvim_treesitter()
+        end
+    end)
 end
 
 local function set_augroups(groups)
     for name, commands in pairs(groups) do
-        vim.api.nvim_create_augroup(name, {})
+        vim.api.nvim_create_augroup(name, { clear = true })
         for _, command in pairs(commands) do
             command[2].group = name
             vim.api.nvim_create_autocmd(unpack(command))
@@ -86,8 +86,8 @@ set_augroups({
             { "FocusLost", "InsertEnter", "WinLeave" },
             {
                 callback = function()
-                    if vim.o.number then
-                        vim.opt.relativenumber = false
+                    if vim.wo.number then
+                        vim.wo.relativenumber = false
                     end
                 end,
                 desc = "Turn off relative number",
@@ -97,8 +97,8 @@ set_augroups({
             { "FocusGained", "InsertLeave", "WinEnter" },
             {
                 callback = function()
-                    if vim.o.number then
-                        vim.opt.relativenumber = true
+                    if vim.wo.number then
+                        vim.wo.relativenumber = true
                     end
                 end,
                 desc = "Turn on relative number",
@@ -164,29 +164,29 @@ set_augroups({
             { "BufReadPost", "BufNewFile", "FileType" },
             {
                 pattern = "*",
-                callback = start_treesitter,
-                desc = "Start Treesitter",
+                callback = notify_treesitter_loaded,
+                desc = "Announce LoadedNvimTreesitter once treesitter is active",
             },
         },
         {
-            { "BufRead" },
+            "BufReadPost",
             {
-
+                pattern = "*",
                 callback = function(event)
-                    vim.api.nvim_create_autocmd("BufWinEnter", {
-                        once = true,
-                        buffer = event.buf,
-                        callback = function()
-                            if require("peter.core.utils").is_excludes_buf(event.buf) then
-                                return
-                            end
+                    local buf = event.buf
+                    if utils.is_excludes_buf(buf) then
+                        return
+                    end
 
-                            local last_known_line = vim.api.nvim_buf_get_mark(event.buf, '"')[1]
-                            if last_known_line > 1 and last_known_line <= vim.api.nvim_buf_line_count(event.buf) then
-                                vim.api.nvim_feedkeys([[g`"]], "nx", false)
-                            end
-                        end,
-                    })
+                    local ft = vim.bo[buf].filetype
+                    if ft == "gitcommit" or ft == "gitrebase" or ft == "help" then
+                        return
+                    end
+
+                    local last_known_line = vim.api.nvim_buf_get_mark(buf, '"')[1]
+                    if last_known_line > 1 and last_known_line <= vim.api.nvim_buf_line_count(buf) then
+                        vim.api.nvim_feedkeys([[g`"]], "nx", false)
+                    end
                 end,
                 desc = "Restore cursor",
             },
@@ -252,7 +252,7 @@ set_augroups({
 
                     local config = vim.lsp.config["tailwindcss"]
                     if not config then
-                        vim.log.warn("Tailwind CSS LSP config not found")
+                        vim.notify("Tailwind CSS LSP config not found", vim.log.levels.WARN)
                         return
                     end
 

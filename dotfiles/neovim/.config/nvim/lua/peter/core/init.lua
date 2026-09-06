@@ -1,3 +1,6 @@
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
 require("peter.core.optimisations")
 require("peter.core.ui")
 require("peter.core.autocmds")

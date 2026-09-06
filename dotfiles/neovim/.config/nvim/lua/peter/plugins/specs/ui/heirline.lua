@@ -10,7 +10,17 @@ return {
     init = function()
         vim.opt.laststatus = 2
         vim.o.showtabline = 2
-        vim.cmd([[au FileType * if index(['wipe', 'delete'], &bufhidden) >= 0 | set nobuflisted | endif]])
+        local augroup = vim.api.nvim_create_augroup("HeirlineNobuflisted", { clear = true })
+        vim.api.nvim_create_autocmd("FileType", {
+            group = augroup,
+            pattern = "*",
+            callback = function()
+                if vim.tbl_contains({ "wipe", "delete" }, vim.bo.bufhidden) then
+                    vim.bo.buflisted = false
+                end
+            end,
+            desc = "Mark wipe/delete-bufhidden buffers as nobuflisted",
+        })
     end,
     config = function()
         local heirline = require("heirline")

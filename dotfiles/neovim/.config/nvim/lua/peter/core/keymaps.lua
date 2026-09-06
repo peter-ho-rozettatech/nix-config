@@ -3,18 +3,18 @@ local opts = { noremap = true, silent = true }
 local multicursor_ns = vim.api.nvim_create_namespace("nvim.multicursor")
 
 -- Buffers: Navigation
-keymap("", "<C-n>", "<CMD>bnext<CR>", { desc = "Next Buffer" })
-keymap("", "<C-p>", "<CMD>bprev<CR>", { desc = "Previous Buffer" })
-keymap("", "<S-l>", "<CMD>bnext<CR>", { desc = "Next Buffer" })
-keymap("", "<S-h>", "<CMD>bprev<CR>", { desc = "Previous Buffer" })
-keymap("", "<S-m>", "<C-^>", { desc = "Alternate Buffer" })
+keymap("n", "<C-n>", "<CMD>bnext<CR>", { desc = "Next Buffer" })
+keymap("n", "<C-p>", "<CMD>bprev<CR>", { desc = "Previous Buffer" })
+keymap("n", "<S-l>", "<CMD>bnext<CR>", { desc = "Next Buffer" })
+keymap("n", "<S-h>", "<CMD>bprev<CR>", { desc = "Previous Buffer" })
+keymap("n", "<S-m>", "<C-^>", { desc = "Alternate Buffer" })
 
 -- Windows: Navigation
-keymap("", "<C-j>", "<C-w>j", {})
-keymap("", "<C-k>", "<C-w>k", {})
-keymap("", "<C-h>", "<C-w>h", {})
-keymap("", "<C-l>", "<C-w>l", {})
-keymap("", "<C-\\>", "<C-w>p", {})
+keymap("n", "<C-j>", "<C-w>j", {})
+keymap("n", "<C-k>", "<C-w>k", {})
+keymap("n", "<C-h>", "<C-w>h", {})
+keymap("n", "<C-l>", "<C-w>l", {})
+keymap("n", "<C-\\>", "<C-w>p", {})
 
 -- Exchange lines
 keymap("n", "]e", ":m .+1<CR>==", { unpack(opts), desc = "Exchange Below" })
@@ -36,8 +36,8 @@ keymap("v", "il", ":<C-u>norm!^vg_<CR>", { unpack(opts), desc = "Inner Line" })
 keymap("o", "al", ":norm val<CR>", { unpack(opts), desc = "Outer Line" })
 keymap("o", "il", ":norm vil<CR>", { unpack(opts), desc = "Inner Line" })
 
--- Search: In Visual Selection
-keymap("x", "gv", [[<Esc>/\%V]], {})
+-- Search: In Visual Selection (gV avoids shadowing built-in gv reselect)
+keymap("x", "gV", [[<Esc>/\%V]], { unpack(opts), desc = "Search in visual selection" })
 
 -- ESC to turn off hlsearch
 keymap("n", "<ESC>", function()
@@ -53,7 +53,7 @@ end, {
 keymap("t", "<C-q>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Incremental Selection
-vim.keymap.set({ "x", "o" }, "v", function()
+vim.keymap.set({ "x", "o" }, "]v", function()
     if vim.treesitter.get_parser(nil, nil, { error = false }) then
         vim.treesitter.select("parent", vim.v.count1)
     else
@@ -61,7 +61,7 @@ vim.keymap.set({ "x", "o" }, "v", function()
     end
 end, { desc = "Select parent (outer) node" })
 
-vim.keymap.set({ "x", "o" }, "V", function()
+vim.keymap.set({ "x", "o" }, "[v", function()
     if vim.treesitter.get_parser(nil, nil, { error = false }) then
         vim.treesitter.select("child", vim.v.count1)
     else
@@ -69,9 +69,7 @@ vim.keymap.set({ "x", "o" }, "V", function()
     end
 end, { desc = "Select child (inner) node" })
 
--- Leader
-vim.g.mapleader = " "
-vim.g.localleader = "\\"
+-- Leader (mapleader/maplocalleader already set in core/init.lua before requires)
 
 keymap("", "<leader><leader>", "<CMD>update<CR>", { desc = "Update" })
 keymap("", "<leader>-", "<C-w>s", { desc = "Split Below" })
@@ -116,7 +114,7 @@ end, { unpack(opts), desc = "QF Add" })
 
 -- Register
 keymap({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank+" })
-keymap("n", "<leader>Y", [["+Y]], { desc = "Yank+ EOL", remap = true })
+keymap("n", "<leader>Y", [["+Y]], { unpack(opts), desc = "Yank+ EOL" })
 keymap({ "n", "v" }, "<leader>p", [["+p]], { desc = "Put+" })
 keymap({ "n", "v" }, "<leader>P", [["+P]], { desc = "Put+ Before" })
 keymap({ "n", "v" }, "<leader>x", [["_d]], { desc = "Delete_" })
@@ -126,7 +124,11 @@ keymap("n", "<leader>ig", [["+gp]], { desc = "gput+" })
 keymap("n", "<leader>iG", [["+gP]], { desc = "gPut+" })
 
 keymap("n", "<leader>iy", "<CMD>%y+<CR>", { desc = "Yank File" })
-keymap("n", "<leader>ip", 'ggVG"+p', { desc = "Put File" })
+keymap("n", "<leader>ip", function()
+    vim.cmd("keepjumps silent %delete _")
+    vim.cmd("0put +")
+    vim.cmd("silent $delete _")
+end, { desc = "Put File" })
 
 -- AI prompt scratch files
 -- Resolve /tmp so the root matches nvim's symlink-resolved buffer names
@@ -186,11 +188,14 @@ end, { desc = "AI Prompt Grep" })
 keymap("n", "<leader>ap", function()
     local paths = {}
     for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-        if vim.bo[bufnr].buflisted and vim.api.nvim_buf_is_loaded(bufnr) then
+        if vim.bo[bufnr].buflisted and vim.bo[bufnr].buftype == "" and vim.api.nvim_buf_is_loaded(bufnr) then
             local name = vim.api.nvim_buf_get_name(bufnr)
-            if name ~= "" and not vim.startswith(name, ai_prompt_root .. "/") then
-                local rel = vim.fn.fnamemodify(name, ":.")
-                table.insert(paths, "@" .. rel)
+            if name ~= "" then
+                local resolved = vim.uv.fs_realpath(name) or vim.fn.resolve(name)
+                if not vim.startswith(resolved, ai_prompt_root .. "/") then
+                    local rel = vim.fn.fnamemodify(name, ":.")
+                    table.insert(paths, "@" .. rel)
+                end
             end
         end
     end
@@ -259,17 +264,17 @@ keymap("n", "<leader>as", function()
     file:close()
 
     local buffer_name = "nvim-agent-send-" .. vim.fn.getpid()
-    vim.fn.system({ "tmux", "load-buffer", "-b", buffer_name, temp_file })
+    local load = vim.system({ "tmux", "load-buffer", "-b", buffer_name, temp_file }):wait()
     vim.fn.delete(temp_file)
-    if vim.v.shell_error ~= 0 then
+    if load.code ~= 0 then
         vim.fn.setreg("+", content)
         vim.notify("Failed to load tmux buffer, copied buffer to clipboard", vim.log.levels.ERROR)
         return
     end
 
-    vim.fn.system({ "tmux", "paste-buffer", "-b", buffer_name, "-p", "-t", target })
-    local paste_failed = vim.v.shell_error ~= 0
-    vim.fn.system({ "tmux", "delete-buffer", "-b", buffer_name })
+    local paste = vim.system({ "tmux", "paste-buffer", "-b", buffer_name, "-p", "-t", target }):wait()
+    local paste_failed = paste.code ~= 0
+    vim.system({ "tmux", "delete-buffer", "-b", buffer_name }):wait()
 
     if paste_failed then
         vim.fn.setreg("+", content)
@@ -289,9 +294,9 @@ keymap("n", "<leader>as", function()
     end
 
     local window_id
-    local window_info = vim.fn.system({ "tmux", "list-panes", "-s", "-F", "#{pane_id} #{window_id}" })
-    if vim.v.shell_error == 0 then
-        for line in window_info:gmatch("[^\n]+") do
+    local panes = vim.system({ "tmux", "list-panes", "-s", "-F", "#{pane_id} #{window_id}" }, { text = true }):wait()
+    if panes.code == 0 then
+        for line in panes.stdout:gmatch("[^\n]+") do
             local pane_id, pane_window_id = line:match("^(%S+)%s+(%S+)$")
             if pane_id == target then
                 window_id = pane_window_id
@@ -302,12 +307,11 @@ keymap("n", "<leader>as", function()
 
     local switch_failed = false
     if window_id then
-        vim.fn.system({ "tmux", "select-window", "-t", window_id })
-        switch_failed = vim.v.shell_error ~= 0
+        switch_failed = vim.system({ "tmux", "select-window", "-t", window_id }):wait().code ~= 0
     end
 
-    vim.fn.system({ "tmux", "select-pane", "-t", target })
-    switch_failed = switch_failed or vim.v.shell_error ~= 0
+    local select_pane = vim.system({ "tmux", "select-pane", "-t", target }):wait()
+    switch_failed = switch_failed or select_pane.code ~= 0
 
     if switch_failed then
         vim.notify("Sent buffer to " .. target .. " but failed to switch pane", vim.log.levels.WARN)

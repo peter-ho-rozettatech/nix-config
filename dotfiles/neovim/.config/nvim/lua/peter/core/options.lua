@@ -68,7 +68,6 @@ opt.listchars = {
 }
 opt.mouse = "a"
 opt.number = true
-opt.path:append("**")
 opt.pumheight = 10
 opt.relativenumber = true
 opt.scrolloff = 5
@@ -79,7 +78,7 @@ opt.shortmess:append("c")
 opt.showmode = false
 opt.signcolumn = "yes"
 opt.smartcase = true
-opt.smartindent = true
+opt.smartindent = false
 opt.softtabstop = 4
 opt.splitbelow = true
 opt.splitright = true
@@ -91,7 +90,7 @@ opt.title = true
 opt.titlestring = "nvim %t %M"
 -- opt.ttimeout = false
 -- opt.ttimeoutlen = 0
-opt.updatetime = 100
+opt.updatetime = 200
 opt.wrap = false
 local function build_wildignore()
     local patterns = {

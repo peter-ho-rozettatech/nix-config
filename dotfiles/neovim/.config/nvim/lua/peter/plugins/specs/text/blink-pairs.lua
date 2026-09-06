@@ -9,9 +9,13 @@ return {
         esac
         nix build .#blink-pairs
         lib_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/lib"
-        target="$lib_dir/libblink_pairs_parser.$lib_ext.$(git rev-parse --short=7 HEAD)"
         mkdir -p "$lib_dir"
-        rm -f "$target"
+        # Prune old versioned builds (previously named with a git hash) so
+        # stale .so/.dylib files do not leak, then install one unversioned
+        # target. No `git rev-parse`: it resolved the superproject HEAD, not
+        # the blink.pairs revision.
+        rm -f "$lib_dir"/libblink_pairs_parser.*
+        target="$lib_dir/libblink_pairs_parser.$lib_ext"
         cp -L "result/lib/libblink_pairs_parser.$lib_ext" "$target"
         chmod u+w "$target"
     ]],

@@ -8,6 +8,18 @@ local function should_filter_ctags(bufnr)
     return vim.tbl_contains(CTAGS_FILTER_LANGUAGES, filetype)
 end
 
+-- An empty Location[] means "no results" and must fall through to ctags fallback.
+-- A non-list table is a single Location/LocationLink and counts as one result.
+local function result_has_items(result)
+    if result == nil then
+        return false
+    end
+    if vim.islist(result) then
+        return #result > 0
+    end
+    return true
+end
+
 -- Helper function to make LSP requests with client tracking
 local function make_lsp_request(method, make_params_fn)
     local bufnr = vim.api.nvim_get_current_buf()
@@ -107,12 +119,19 @@ local function make_lsp_request(method, make_params_fn)
         end
     end
 
+    -- Zero regular clients and no ctags fallback: nothing to request, still update UI.
+    if pending == 0 then
+        process_results()
+        return
+    end
+
     for _, client in ipairs(regular_clients) do
         local params = make_params_fn and make_params_fn(client)
             or vim.lsp.util.make_position_params(0, client.offset_encoding)
 
         client:request(method, params, function(err, result)
-            if not err and result then
+            -- Count items, not just nil: an empty list must fall through to ctags fallback.
+            if not err and result_has_items(result) then
                 responses[client.id] = { result = result, client = client }
             end
 
@@ -139,7 +158,7 @@ local function make_lsp_request(method, make_params_fn)
                         or vim.lsp.util.make_position_params(0, ctags_client.offset_encoding)
 
                     ctags_client:request(method, params, function(err, result)
-                        if not err and result then
+                        if not err and result_has_items(result) then
                             responses[ctags_client.id] = { result = result, client = ctags_client }
                         end
 

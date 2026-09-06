@@ -153,7 +153,7 @@ return {
                 update_n_lines = "",
             },
         })
-        vim.keymap.del("x", "ys")
+        pcall(vim.keymap.del, "x", "ys")
         vim.keymap.set(
             "x",
             "gs",

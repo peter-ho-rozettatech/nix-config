@@ -2,6 +2,11 @@ return {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = function()
+        local leader_nx = {
+            mode = { "n", "x" },
+            { "<leader>a", group = "ai" },
+            { "<leader>j", group = "jump" },
+        }
         local spec = {
             -- overrides
             {
@@ -34,11 +39,7 @@ return {
                 { "<leader>t", group = "tools" },
                 { "<leader>u", group = "ui" },
             },
-            {
-                mode = { "n", "x" },
-                { "<leader>a", group = "ai" },
-                { "<leader>j", group = "jump" },
-            },
+            leader_nx,
             -- vim-abolish
             {
                 mode = "n",
@@ -80,7 +81,7 @@ return {
         }
 
         if os.getenv("OBSIDIAN_VAULTS") ~= nil then
-            table.insert(spec[3], { "<leader>o", group = "obsidian" })
+            table.insert(leader_nx, { "<leader>o", group = "obsidian" })
         end
 
         return {

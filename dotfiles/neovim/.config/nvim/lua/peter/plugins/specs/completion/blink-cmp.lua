@@ -345,7 +345,10 @@ return {
                     },
                     override = {
                         get_trigger_characters = function(self)
-                            local trigger_characters = self:get_trigger_characters()
+                            -- Call the base path source directly; self:get_trigger_characters
+                            -- here would recurse into this override.
+                            local base = require("blink.cmp.sources.path").get_trigger_characters
+                            local trigger_characters = base(self)
                             if not vim.tbl_contains(trigger_characters, "@") then
                                 table.insert(trigger_characters, "@")
                             end
@@ -388,7 +391,10 @@ return {
                                 length = end_col - start_col,
                             }
 
-                            return self:get_completions(adapted_context, callback)
+                            -- Delegate to the base path source; calling
+                            -- self:get_completions here would infinitely recurse.
+                            local base = require("blink.cmp.sources.path").get_completions
+                            return base(self, adapted_context, callback)
                         end,
                     },
                 },
@@ -457,7 +463,9 @@ return {
                     name = "Ripgrep",
                     async = true,
                     opts = {
-                        prefix_min_len = 3,
+                        -- Higher prefix + smaller context: ripgrep scans the repo on
+                        -- short words, which stalls large repos.
+                        prefix_min_len = 4,
                         project_root_marker = ".git",
                         fallback_to_regex_highlighting = true,
                         toggles = {
@@ -469,7 +477,7 @@ return {
                             use = "gitgrep-or-ripgrep",
                             customize_icon_highlight = true,
                             ripgrep = {
-                                context_size = 5,
+                                context_size = 3,
                                 max_filesize = "1M",
                                 project_root_fallback = true,
                                 search_casing = "--ignore-case",

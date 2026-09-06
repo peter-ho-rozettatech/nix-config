@@ -479,9 +479,14 @@ return {
             end, { desc = "Auto-fix" })
 
             vim.api.nvim_buf_create_user_command(bufnr, "RuffOrganizeImports", function()
+                -- The server rejects a stale `version`, so send the real buffer version.
+                local version = vim.lsp.util.buf_versions[bufnr]
+                if version == nil then
+                    version = vim.api.nvim_buf_get_changedtick(bufnr)
+                end
                 client:exec_cmd({
                     command = "ruff.applyOrganizeImports",
-                    arguments = { { uri = vim.uri_from_bufnr(0), version = 123 } },
+                    arguments = { { uri = vim.uri_from_bufnr(bufnr), version = version } },
                 })
             end, { desc = "Organize Imports" })
 
