@@ -20,7 +20,7 @@ let
     };
     aarch64-darwin = {
       url = "https://github.com/dondai44423/donsetch/releases/download/v${version}/donsetch-darwin-arm64.tar.gz";
-      hash = "sha256-6kUgTxiDdL+PqavptrFtnmzj3t1Te7FfuQc2e9qHcVo=";
+      hash = "sha256-uRPbDiEcMsLXgDqQMjcfEPwHjPlJkJd6wE29x0s3UgE=";
     };
     x86_64-darwin = {
       url = "https://github.com/dondai44423/donsetch/releases/download/v${version}/donsetch-darwin-x64.tar.gz";
