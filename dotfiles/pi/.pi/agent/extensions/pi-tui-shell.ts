@@ -1015,11 +1015,29 @@ function isEditorBorderLine(
   scrollDirection: "↑" | "↓",
   width: number,
 ): boolean {
+  if (line === undefined) return false;
+  if (line === horizontalBorder) return true;
+  // pi-tui 0.85 colors the whole border with one ANSI wrap, while older
+  // versions wrapped each cell. Strict equality fails across the two
+  // styles under real themes, so compare the stripped text at equal width.
+  if (
+    visibleWidth(line) === width &&
+    stripTerminalSequences(line) ===
+      stripTerminalSequences(horizontalBorder)
+  ) {
+    return true;
+  }
+  // Uncolored plain-dash fallback (covers stripped test fixtures).
+  if (
+    visibleWidth(line) === width &&
+    /^─+$/.test(stripTerminalSequences(line))
+  ) {
+    return true;
+  }
   return (
-    line === horizontalBorder ||
-    (line?.includes(scrollDirection) === true &&
-      line.includes(" more ") &&
-      visibleWidth(line) === width)
+    line.includes(scrollDirection) &&
+    line.includes(" more ") &&
+    visibleWidth(line) === width
   );
 }
 
@@ -1065,7 +1083,9 @@ export function composeEditorShellRows(input: EditorShellRows): string[] {
   } = input;
   const border = (text: string) => theme.fg("border", text);
   const nativeWidth = Math.max(1, width - 2);
-  const horizontalBorder = border("─").repeat(nativeWidth);
+  // Single wrap matches pi-tui 0.85+ `renderTopBorder`; stripped comparison
+  // in `isEditorBorderLine` keeps older per-cell borders matching too.
+  const horizontalBorder = border("─".repeat(nativeWidth));
   const hasNativeBorders =
     renderedLines.length >= 2 &&
     isEditorBorderLine(renderedLines[0], horizontalBorder, "↑", nativeWidth);

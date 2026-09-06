@@ -496,6 +496,42 @@ test("shell borders add width-safe corner rails", () => {
 	assert.equal(visibleWidth(ansiRows.at(-1) ?? ""), width);
 });
 
+test("shell strips both single-wrap and per-cell native borders", () => {
+	// pi-tui 0.85 colors the whole border with one ANSI wrap, while 0.84
+	// wrapped each cell. Both must be recognized as native borders, or the
+	// shell keeps them and draws a second border around them.
+	const width = 30;
+	const nativeWidth = width - 2;
+	const ansiTheme = {
+		...plainTheme,
+		fg: (color: string, text: string) =>
+			color === "border" ? `\x1b[31m${text}\x1b[39m` : text,
+	} as unknown as ShellTheme;
+	const singleWrap = ansiTheme.fg("border", "─".repeat(nativeWidth));
+	const perCell = ansiTheme.fg("border", "─").repeat(nativeWidth);
+
+	for (const nativeBorder of [singleWrap, perCell]) {
+		const rows = composeEditorShellRows({
+			theme: ansiTheme,
+			width,
+			nativeLines: [nativeBorder, "content", nativeBorder],
+			showingAutocomplete: false,
+			topLeft: " model ",
+			topRight: " ctx ",
+			bottomLeft: " cwd ",
+			bottomRight: " usage ",
+			fitBottomLeft: (maximumWidth) =>
+				" cwd ".slice(0, Math.max(0, maximumWidth)),
+		});
+
+		assert.equal(rows.length, 3);
+		assert.match(rows[0] ?? "", /╭/);
+		assert.match(rows[1] ?? "", /content/);
+		assert.match(rows[2] ?? "", /╰/);
+		assertLinesFit(rows, width);
+	}
+});
+
 test("degenerate shell border widths omit metadata without overflowing", () => {
 	const expected = [
 		["", ""],
