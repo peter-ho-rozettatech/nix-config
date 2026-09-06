@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: "Diagnose software bugs across local development, CI, shared QA/staging, and production using evidence-driven local/shared/incident profiles. Maintains a concise live DEBUG.md, separates causal confidence from investigation progress, and provides confirmed corrective handoffs or next diagnostic actions. Diagnosis only by default; never mutates production."
+description: "Diagnose software bugs across local development, CI, shared QA/staging, and production using evidence-driven local/shared/incident profiles. Maintains a concise live DEBUG.md, separates causal confidence from investigation progress, and provides confirmed corrective handoffs or next diagnostic actions. Diagnosis only by default; never mutates production. Do not use for implementing fixes; confirmed findings hand off to a separate implementation workflow."
 disable-model-invocation: true
 ---
 
@@ -15,6 +15,9 @@ Manual invocation is intentional; retain `disable-model-invocation: true`.
 
 - Do not retain fixes, refactors, regression tests, or instrumentation. A
   separately invoked implementation workflow owns corrective changes.
+- If the user requests implementation during an investigation, finish the
+  current safe observation, complete the notebook handoff under the final
+  investigation step, and stop. Do not fix inside this workflow.
 - Never mutate production or shared resources. Do not deploy, restart, roll
   back, change persistent flags/configuration, replay messages, or repair data.
   Production access is authorized, bounded, read-only observation only.
@@ -38,7 +41,7 @@ Manual invocation is intentional; retain `disable-model-invocation: true`.
 
 Profile, execution environment, and severity are separate fields.
 
-| Profile | Select when | Priority |
+| Profile | Select when | Optimize for |
 | --- | --- | --- |
 | `incident` | Active or suspected operational harm warrants urgent assessment or coordination, in any environment | Impact, escalation, containment advice, and safe evidence |
 | `local` | Isolation is demonstrated: disposable state, scoped storage, controlled credentials/dependencies/network, and no shared effects; this may include CI | Fast reproduction and controlled experiments |
@@ -81,11 +84,11 @@ Read [incident response](references/incident-response.md) before production
 queries or containment advice. Escalate suspected serious harm early; do not
 wait for a cause or severity assignment. After the minimum safe fact/risk
 review, send advisory containment before independent review or full notebook
-work, not only in the final handoff. Give a supported option, rationale,
-reversibility, risks/preconditions, external decision owner, reversal signals,
-and bounded read-only verification (see the reference). If no responsible
-option is available, say why and name the next owner decision instead of
-inventing advice. Confirmed cause is not required; never execute containment.
+work, not only in the final handoff. Cover every containment element the
+reference lists, including what the action would and would not establish about
+the diagnosis. If no responsible option is available, say why and name the
+next owner decision instead of inventing advice. Confirmed cause is not
+required; never execute containment.
 
 Missing severity or an owner blocks decisions requiring that authority, not
 otherwise authorized safe observations. Preserve expiring evidence only
@@ -163,13 +166,16 @@ isolated experiment need not wait until every read-only avenue is exhausted.
 Record observations as `E#`, their source/context/result, interpretation,
 hypothesis impact, and limits. States are `untested`, `supported`,
 `contradicted`, or `disproved`; support is not causal confirmation.
-Preserve negative results and state transitions. Repeated guesses or agreement
-between agents is not evidence.
+`contradicted` means specific evidence conflicts with the claim but the
+mechanism is not excluded; `disproved` means a discriminating observation
+falsified the asserted mechanism. Preserve negative results and state
+transitions. Repeated guesses or agreement between agents is not evidence.
 
 Update the notebook after each meaningful result, blocker, authorization, or
 state change. Keep a current next action. Bound the investigation by an agreed
-or stated time/run budget; pause for a useful handoff when progress stalls,
-cost grows, or access blocks the next discriminating step.
+or stated time/run budget; if none is stated, pause and report after two
+discriminating steps without progress. Pause for a useful handoff when
+progress stalls, cost grows, or access blocks the next discriminating step.
 
 ### 4. Use disposable experiments when justified
 
@@ -246,7 +252,8 @@ Do not hardcode a dependency on another skill.
 
 Compare final state with the baseline, including owned artifacts/processes and
 any Git probe state. Remove only investigation-owned changes. The intended
-`DEBUG.md` is retained and excluded from temporary-artifact cleanup.
+`DEBUG.md` is retained and excluded from temporary-artifact cleanup; flag its
+exact untracked path in the final report so the user can ignore or commit it.
 If cleanup cannot be proved, report exact paths/state, set cleanup `blocked`,
 and keep investigation `blocked` rather than claiming clean completion.
 A blocked diagnosis may otherwise finish with a documented evidence limit;

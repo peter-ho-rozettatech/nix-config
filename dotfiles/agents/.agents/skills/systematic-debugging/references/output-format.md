@@ -19,6 +19,9 @@ work; record that communication here rather than delaying it to fill a template.
 - Use `Unknown: <gap>` for unknown facts. During work, use
   `Pending: <next step>` where appropriate. At handoff, identify exact unresolved
   work and its blocker/owner instead of leaving unexplained placeholders.
+- Most straightforward local cases need only `E#` and `H#` plus the core
+  template. Add other ID namespaces only when the conditional table below
+  requires them.
 - Omit irrelevant conditional sections entirely. If a section already contains
   history, retain it with its current or superseded disposition.
 - Redact before ingestion and writing. Record the class removed and any loss of
@@ -89,7 +92,7 @@ Add only those needed, preferably near the core section they explain:
 | Extension | When useful | Minimum content |
 | --- | --- | --- |
 | Incident state and timeline | Incident profile | Ongoing/contained/recovered/unknown; factual impact, owner, detection, timestamped events, evidence, next update/decision |
-| Advisory containment | Incident option supported by facts/bounded assumptions | Option, rationale, expected impact reduction, reversibility, risks, owner/preconditions, rollback signals, post-action observations; never executed here |
+| Advisory containment | Incident option supported by facts/bounded assumptions | Full element list in [incident response](incident-response.md), including post-action observations and what the action would and would not establish about the diagnosis; never executed here |
 | System/boundary model | Several links or uncertain origin | Expected path, verified identities, last good/first bad boundary, evidence and gaps |
 | Reproduction/runs | Multiple attempts, reductions, or intermittent results | Context, controlled variable, prediction, outcome/signature, ordered passes and failures, bounds |
 | Telemetry integrity (`OI#`) | Telemetry supports a material claim | Target/definition/query/window, sampling/retention/collection limits, cross-check, disposition: trusted for claim / limited / unusable |
