@@ -16,15 +16,15 @@ let
     };
     aarch64-linux = {
       url = "https://github.com/dondai44423/donsetch/releases/download/v${version}/donsetch-linux-arm64.tar.gz";
-      hash = "sha256-PyY8grldPRca+FcusmT3fEVPF5qZnJd1YmZHjk4KzqE=";
+      hash = "sha256-yVMzJOzhDik8d4WqYIlrm13PbuugX6/RjXCLi8BsqJQ=";
     };
     aarch64-darwin = {
       url = "https://github.com/dondai44423/donsetch/releases/download/v${version}/donsetch-darwin-arm64.tar.gz";
-      hash = "sha256-uRPbDiEcMsLXgDqQMjcfEPwHjPlJkJd6wE29x0s3UgE=";
+      hash = "sha256-VihFgx5RP2cmJnrC43F1xgBFcLfuwkk5zMSQhmrzK18=";
     };
     x86_64-darwin = {
       url = "https://github.com/dondai44423/donsetch/releases/download/v${version}/donsetch-darwin-x64.tar.gz";
-      hash = "sha256-UZmaP1c/iHsSZg5IqX+SHSZC1H/qEEcfOGOskmOQKKk=";
+      hash = "sha256-aqAEIECrQKKkqfT/5VltrMha2xYkk/QmnNCXAHoyza0=";
     };
   };
   version = "3.6.6";

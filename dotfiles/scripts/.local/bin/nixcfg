@@ -548,6 +548,50 @@ function tool:nix:rebuild {
     echo_success "Nix config rebuilt"
 }
 
+# Prefetch all `url = "https://..."` assets in a multi-platform binary package
+# (donsetch/bladebro/codexbar pattern: assets.<system> = { url; hash; }).
+# Download-only via `nix store prefetch-file`, so darwin hashes refresh from
+# linux and vice versa. No cross builds, no remote builders.
+function prefetch_assets_for_file() {
+    local file="$1"
+    local version="" url_template="" resolved_url="" old_hash="" new_hash=""
+    local grep_line="" url_lineno="" url_line=""
+
+    version=$(grep -E '^[[:space:]]*version[[:space:]]*=[[:space:]]*"' "$file" | head -1 | sed -E 's/.*version[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/' || true)
+    if [[ -z $version ]]; then
+        echo_warning "prefetch-assets: no version found in $file, skipping"
+        return 0
+    fi
+
+    # Each asset stanza is `url = "...";` followed within a few lines by its `hash = "...";`
+    while IFS= read -r grep_line; do
+        url_lineno="${grep_line%%:*}"
+        url_line="${grep_line#*:}"
+        url_template=$(printf '%s' "$url_line" | sed -E 's/.*url[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/')
+        [[ $url_template == https://* ]] || continue
+        resolved_url=$(printf '%s' "$url_template" | sed -e "s|\${version}|$version|g" -e "s|\${finalAttrs.version}|$version|g")
+        old_hash=$(sed -n "${url_lineno},$((url_lineno + 5))p" "$file" | grep -oE 'sha256-[A-Za-z0-9+/=]+' | head -1 || true)
+        if [[ -z $old_hash ]]; then
+            echo_warning "prefetch-assets: no hash found near $file:$url_lineno, skipping $resolved_url"
+            continue
+        fi
+        echo_info "prefetch-assets: fetching $resolved_url"
+        if ! new_hash=$(nix store prefetch-file --json "$resolved_url" 2>/dev/null | jq_query -r .hash) || [[ $new_hash != sha256-* ]]; then
+            echo_warning "prefetch-assets: failed to prefetch $resolved_url, keeping $old_hash"
+            continue
+        fi
+        if [[ $new_hash == "$old_hash" ]]; then
+            echo_info "prefetch-assets: up to date ($old_hash)"
+        elif grep -Fq -- "$old_hash" "$file"; then
+            sed -i.bak "s|$old_hash|$new_hash|g" "$file"
+            rm -f "$file.bak"
+            echo_success "prefetch-assets: $old_hash -> $new_hash"
+        else
+            echo_warning "prefetch-assets: could not find $old_hash in $file"
+        fi
+    done < <(grep -nE 'url[[:space:]]*=[[:space:]]*"https://' "$file" || true)
+}
+
 function tool:pkgs:hashes() {
     local operation_name="${1:-manual operation}"
     shift || true
@@ -618,6 +662,14 @@ function tool:pkgs:hashes() {
                     echo "Raw build output:"
                     echo "$build_output" | grep -A5 -B5 "hash mismatch" || true
                 fi
+            fi
+
+            # Multi-platform binary packages (donsetch/bladebro/codexbar pattern):
+            # the nix-build check above only fixes the current system's hash.
+            # Prefetch every asset URL by download so the other platforms stay
+            # in sync. Download-only, no cross builds.
+            if grep -q 'assets' "$file" && grep -q 'url = "https://' "$file"; then
+                prefetch_assets_for_file "$file"
             fi
         done
     else
