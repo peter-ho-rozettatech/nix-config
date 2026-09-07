@@ -59,16 +59,16 @@ let
 in
 rustPlatform.buildRustPackage {
   pname = "lg-buddy";
-  version = "1.4.0-unstable-2026-09-02";
+  version = "1.5.1-unstable-2026-09-06";
 
   src = fetchFromGitHub {
     owner = "Staphylococcus";
     repo = "LG_Buddy";
-    rev = "e247d23a98bbde5c2b0ea39f2bfe19ec18959de1";
-    hash = "sha256-qT06pIMD6gn7NAv4iLyOvvXIeSPxngyg8H+Wzt9Qn5E=";
+    rev = "4824bdac0e629c049deb86176d898512b184cdf6";
+    hash = "sha256-EvbFd9uOdQirP1FBK0yePa/8r9NPTLBP9JQNYsJ3qrs=";
   };
 
-  cargoHash = "sha256-xjpHvqo/BojoxVHUkmfo8AwSObM112wYuszn1V5StIA=";
+  cargoHash = "sha256-zYJuoZNx+qKBoAxUetF9YndKYzQ5Pbr6KJJvhI8F0UA=";
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -83,9 +83,20 @@ rustPlatform.buildRustPackage {
     install -Dm755 ${./lg-buddy-configure} $out/bin/lg-buddy-configure
     patchShebangs $out/bin/lg-buddy-configure
 
-    install -Dm644 LG_Buddy_Brightness.desktop $out/share/applications/LG_Buddy_Brightness.desktop
-    substituteInPlace $out/share/applications/LG_Buddy_Brightness.desktop \
-      --replace-fail /usr/bin/lg-buddy $out/bin/lg-buddy
+    # Upstream renamed LG_Buddy_Brightness.desktop to io.github.staphylococcus.LGBuddy.desktop in 1.5.x.
+    if [ -f io.github.staphylococcus.LGBuddy.desktop ]; then
+      install -Dm644 io.github.staphylococcus.LGBuddy.desktop $out/share/applications/io.github.staphylococcus.LGBuddy.desktop
+      substituteInPlace $out/share/applications/io.github.staphylococcus.LGBuddy.desktop \
+        --replace-fail /usr/bin/lg-buddy $out/bin/lg-buddy
+    else
+      install -Dm644 LG_Buddy_Brightness.desktop $out/share/applications/LG_Buddy_Brightness.desktop
+      substituteInPlace $out/share/applications/LG_Buddy_Brightness.desktop \
+        --replace-fail /usr/bin/lg-buddy $out/bin/lg-buddy
+    fi
+
+    if [ -f data/icons/hicolor/scalable/apps/io.github.staphylococcus.LGBuddy.svg ]; then
+      install -Dm644 data/icons/hicolor/scalable/apps/io.github.staphylococcus.LGBuddy.svg $out/share/icons/hicolor/scalable/apps/io.github.staphylococcus.LGBuddy.svg
+    fi
 
     wrapProgram $out/bin/lg-buddy \
       --set-default LG_BUDDY_BSCPYLGTV_COMMAND ${bscpylgtv}/bin/bscpylgtvcommand \

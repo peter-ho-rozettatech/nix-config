@@ -6,17 +6,17 @@
 }:
 buildNpmPackage {
   pname = "omp-undo-redo";
-  version = "1.6.0-unstable-2026-09-05";
+  version = "1.6.1-unstable-2026-09-07";
 
   src = fetchFromGitHub {
     owner = "Baylar55";
     repo = "omp-undo-redo";
-    rev = "ab91934b75063a11dbeb354958f07c438711b68f";
-    hash = "sha256-t/JLNEA5LuST4ZE6buxwLuAM6O/hiF/ixVtstLwl5U4=";
+    rev = "02d315e119df8eebd7365a97aaff6981820bb80d";
+    hash = "sha256-UM1gZCK26+czSUFA3WrOgYJ4eysgxCCczpJ8wYfrAfs=";
   };
 
   nodejs = nodejs_24;
-  npmDepsHash = "sha256-RjT7sgC4VFNsleeolKjB3q+MyUDl4VFSKyLuCkGU2ww=";
+  npmDepsHash = "sha256-HXlczFFpqLM9c6bO5ust6JZdBsi7fsMCmCWnLWCviYo=";
   npmDepsFetcherVersion = 2;
 
   # Transitive dev dep @huggingface/transformers → onnxruntime-node runs a
