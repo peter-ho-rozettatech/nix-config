@@ -17,7 +17,7 @@ let
     };
     aarch64-linux = {
       url = "https://github.com/dondai44423/bladebro/releases/download/v${version}/bladebro-linux-arm64";
-      hash = "sha256-mOeY/LC7EVVoan1LJPfYgg3UnvSQ8ZbC9Z9j7gN8XXA=";
+      hash = "sha256-Bvoi2zJJe8bH5t5qyN831PfxJxmFXh7buYzB4ufcAXA=";
     };
     aarch64-darwin = {
       url = "https://github.com/dondai44423/bladebro/releases/download/v${version}/bladebro-darwin-arm64";
@@ -25,7 +25,7 @@ let
     };
     x86_64-darwin = {
       url = "https://github.com/dondai44423/bladebro/releases/download/v${version}/bladebro-darwin-x64";
-      hash = "sha256-imXZkBoV1XE3yN7mZiTWa49i+80ZwBYgBX4fJG7FV2k=";
+      hash = "sha256-bPkvlbB927OxlWY+KVJ2kxNSYWRnLMK5jg8LfPUiSAg=";
     };
   };
   version = "3.9.6";
