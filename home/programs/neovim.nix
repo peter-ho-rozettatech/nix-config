@@ -83,7 +83,7 @@ in
       templ
       tflint
       unstable.ty
-      typescript-go
+      typescript
       typos-lsp
       vscode-langservers-extracted # html, css, json, eslint
       # vtsls
