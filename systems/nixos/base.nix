@@ -20,17 +20,19 @@
   nix.gc.dates = "weekly";
   nix.settings.auto-optimise-store = true;
 
-  security.sudo.extraConfig = ''
-    Defaults pwfeedback
-    Defaults timestamp_timeout=60
-    Defaults timestamp_type=tty
-  '';
+  security.sudo = {
+    execWheelOnly = true;
+    extraConfig = ''
+      Defaults pwfeedback
+      Defaults timestamp_timeout=60
+      Defaults timestamp_type=tty
+    '';
+  };
 
   users.users.${config.user} = {
     isNormalUser = true;
     extraGroups = [
       "dialout"
-      "docker"
       "wheel"
     ];
   };
@@ -42,11 +44,11 @@
 
   virtualisation = {
     docker = {
-      enable = true;
-      enableOnBoot = false;
-      autoPrune = {
+      # The rootful Docker socket gives every member of the docker group
+      # effective root access. Use the per-user daemon instead.
+      rootless = {
         enable = true;
-        dates = "weekly";
+        setSocketVariable = true;
       };
     };
   };
