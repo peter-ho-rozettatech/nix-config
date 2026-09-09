@@ -1,6 +1,5 @@
 {
   outputs,
-  pkgs,
   ...
 }:
 {
@@ -23,11 +22,6 @@
         "flakes"
       ];
       warn-dirty = false;
-      trusted-users = [
-        "root"
-        (if pkgs.stdenv.hostPlatform.isLinux then "@wheel" else "@admin")
-      ];
-
       # Deliberately duplicated with flake.nix's nixConfig, which covers fresh
       # clones and `nix run` against this flake. That path is advisory: nix keys
       # the accept-flake-config decision on the exact whole setting string, so
