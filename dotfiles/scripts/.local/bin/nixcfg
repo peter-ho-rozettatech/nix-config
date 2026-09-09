@@ -213,7 +213,12 @@ function activation_system() {
 }
 
 function load_activation_targets() {
-    if ! ACTIVATION_TARGETS_JSON=$(nix eval --json "${NIX_CONFIG_PATH}#activationTargets" --accept-flake-config); then
+    local activation_targets_expr='(builtins.getFlake (builtins.getEnv "NIXCFG_FLAKE_PATH")).activationTargets'
+
+    if ! ACTIVATION_TARGETS_JSON=$(
+        NIXCFG_FLAKE_PATH="$NIX_CONFIG_PATH" \
+            nix eval --impure --json --expr "$activation_targets_expr"
+    ); then
         echo_error "Failed to evaluate activationTargets from $NIX_CONFIG_PATH"
         exit 1
     fi
