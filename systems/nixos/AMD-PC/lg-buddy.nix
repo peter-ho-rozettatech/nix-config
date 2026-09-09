@@ -24,12 +24,12 @@ let
   macSyncScript = pkgs.writeShellScript "lg-buddy-mac-sync" ''
     set -euo pipefail
     export PATH="${lib.makeBinPath [
-      pkgs.coreutils
-      pkgs.gnused
-      pkgs.gawk
-      pkgs.gnugrep
-      pkgs.iputils
-      pkgs.iproute2
+        pkgs.coreutils
+        pkgs.gnused
+        pkgs.gawk
+        pkgs.gnugrep
+        pkgs.iputils
+        pkgs.iproute2
     ]}"
 
     config_file="${configFile}"
@@ -88,10 +88,10 @@ let
   startupWrapper = pkgs.writeShellScript "lg-buddy-startup-wrapper" ''
     set -euo pipefail
     export PATH="${lib.makeBinPath [
-      pkgs.coreutils
-      pkgs.gnused
-      pkgs.gawk
-      pkgs.gnugrep
+        pkgs.coreutils
+        pkgs.gnused
+        pkgs.gawk
+        pkgs.gnugrep
     ]}"
 
     config_file="${configFile}"
@@ -249,6 +249,7 @@ in
     };
     serviceConfig = {
       Type = "oneshot";
+      User = config.user;
       RemainAfterExit = true;
       SuccessExitStatus = [ 1 ];
       # Refresh the Wake-on-LAN MAC before startup so we target the radio the
@@ -271,6 +272,7 @@ in
     unitConfig.ConditionPathExists = configFile;
     serviceConfig = {
       Type = "simple";
+      User = config.user;
       ExecStart = "${pkgs.lg-buddy}/bin/lg-buddy lifecycle";
       Restart = "on-failure";
       RestartSec = 10;
