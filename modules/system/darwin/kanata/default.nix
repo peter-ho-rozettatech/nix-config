@@ -53,7 +53,7 @@ in
         fi
 
         if [ "$NEEDS_INSTALL" = true ]; then
-            sudo /usr/sbin/installer -pkg ${KDK_PKG} -target /
+            /usr/sbin/installer -pkg ${KDK_PKG} -target /
         fi
 
         if [ -f ${KDK_MANAGER} ]; then
@@ -67,19 +67,19 @@ in
       # sh
       ''
         echo "Restarting Karabiner DriverKit ..."
-        sudo launchctl unload /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist 2> /dev/null || true
-        sudo launchctl load /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist
+        launchctl unload /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist 2> /dev/null || true
+        launchctl load /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist
 
         echo "Restarting Kanata ..."
-        sudo launchctl unload /Library/LaunchDaemons/local.jtroo.kanata.plist 2> /dev/null || true
-        sudo launchctl load /Library/LaunchDaemons/local.jtroo.kanata.plist
+        launchctl unload /Library/LaunchDaemons/local.jtroo.kanata.plist 2> /dev/null || true
+        launchctl load /Library/LaunchDaemons/local.jtroo.kanata.plist
       '';
 
     launchd.daemons = {
       karabinerDriverKit = {
-        command = "sudo '${KDK_DAEMON}'";
         serviceConfig = {
           Label = "org.pqrs.karabiner.driverkit";
+          ProgramArguments = [ KDK_DAEMON ];
           RunAtLoad = true;
           KeepAlive = true;
           StandardOutPath = "/Library/Logs/Karabiner-DriverKit-VirtualHIDDevice/out.log";
@@ -87,9 +87,13 @@ in
         };
       };
       kanata = {
-        command = "sudo ${pkgs.kanata}/bin/kanata -c /etc/kanata/kanata.kbd";
         serviceConfig = {
           Label = "local.jtroo.kanata";
+          ProgramArguments = [
+            "${pkgs.kanata}/bin/kanata"
+            "-c"
+            "/etc/kanata/kanata.kbd"
+          ];
           RunAtLoad = true;
           KeepAlive = true;
           StandardOutPath = "/Library/Logs/Kanata/out.log";
@@ -102,29 +106,7 @@ in
       systemPackages = with pkgs; [
         kanata
       ];
-      etc = {
-        "kanata/kanata.kbd".text = cfg.config;
-        "sudoers.d/karabiner-driverkit".source =
-          pkgs.runCommand "sudoers-karabiner-driverkit" { }
-            # sh
-            ''
-              BIN="${KDK_DAEMON}"
-              SHASUM=$(sha256sum "$BIN" | cut -d' ' -f1)
-              cat << EOF > "$out"
-              %admin ALL=(root) NOPASSWD: sha256:$SHASUM $BIN
-              EOF
-            '';
-        "sudoers.d/kanata".source =
-          pkgs.runCommand "sudoers-kanata" { }
-            # sh
-            ''
-              BIN="${pkgs.kanata}/bin/kanata"
-              SHASUM=$(sha256sum "$BIN" | cut -d' ' -f1)
-              cat << EOF > "$out"
-              %admin ALL=(root) NOPASSWD: sha256:$SHASUM $BIN
-              EOF
-            '';
-      };
+      etc."kanata/kanata.kbd".text = cfg.config;
     };
   };
 }
