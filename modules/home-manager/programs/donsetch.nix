@@ -21,7 +21,10 @@ in
     # ~/.config/mcp/mcp.json (pi-mcp-adapter), opencode, and Claude Code.
     programs.ai.mcp.donsetch = {
       command = lib.getExe' cfg.package "donsetch";
-      args = [ "mcp" ];
+      args = [
+        "mcp"
+        "--supervised"
+      ];
     };
   };
 }
