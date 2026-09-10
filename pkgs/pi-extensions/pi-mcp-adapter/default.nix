@@ -10,17 +10,17 @@
 }:
 buildNpmPackage {
   pname = "pi-mcp-adapter";
-  version = "2.32.1-unstable-2026-09-05";
+  version = "2.32.1-unstable-2026-09-10";
 
   src = fetchFromGitHub {
     owner = "nicobailon";
     repo = "pi-mcp-adapter";
-    rev = "8243eba3421e301c88c047444f34ab7d5d57163e";
-    hash = "sha256-Z+Nc7aQJFnZKYAe6yQN0CFwYuekNahAcFRg+dDBpRVU=";
+    rev = "f6cabbdb762f1fd5ba30f02eecd3fe43ad0a3bd4";
+    hash = "sha256-BqdSfdYnqkf5RSA/LDV3aArG9/BuE45aXcFj0ZbM290=";
   };
 
   nodejs = nodejs_24;
-  npmDepsHash = "sha256-uR3MQutnIMiaQBhVogjav3TwfeTAoKcRacz360t7DF0=";
+  npmDepsHash = "sha256-H27c87dtJCtL0zy7aWVoWi2iDY5LedR2ZhMvFYP4wO8=";
   npmDepsFetcherVersion = 2;
   # Upstream (post-2.27.0) added `prepare: npm run build:public` — tsc
   # emitting dist/ declaration files for embedding hosts that import the

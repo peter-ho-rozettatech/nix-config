@@ -5,13 +5,13 @@
 }:
 stdenv.mkDerivation {
   pname = "pi-history";
-  version = "0.1.7-unstable-2026-09-04";
+  version = "0.1.7-unstable-2026-09-10";
 
   src = fetchFromGitHub {
     owner = "sagmans";
     repo = "pi-history";
-    rev = "0f58ee3a4f212a02b5d1b906bf09653603c3cc13";
-    hash = "sha256-OLqs5v155y38Y60nYU0jSANEPJN0zCAvDmqVOALhzcE=";
+    rev = "f72b46dd8fdeccc464a7e14fed659481e6d97d33";
+    hash = "sha256-6nOLTdNPfoLoq2/VUMOkTpwzNzfV70nVHczAWqRkxbA=";
   };
 
   dontBuild = true;
