@@ -216,7 +216,7 @@ function load_activation_targets() {
     local activation_targets_expr='(builtins.getFlake (builtins.getEnv "NIXCFG_FLAKE_PATH")).activationTargets'
 
     if ! ACTIVATION_TARGETS_JSON=$(
-        NIXCFG_FLAKE_PATH="$NIX_CONFIG_PATH" \
+        NIXCFG_FLAKE_PATH="git+file://$NIX_CONFIG_PATH" \
             nix eval --impure --json --expr "$activation_targets_expr"
     ); then
         echo_error "Failed to evaluate activationTargets from $NIX_CONFIG_PATH"
