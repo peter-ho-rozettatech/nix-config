@@ -101,9 +101,9 @@ OverlayHost {
                                     const ix = mse.x - (width - icon.width) / 2;
                                     const iy = mse.y - (height - icon.height) / 2;
                                     if (mse.button === Qt.RightButton) {
-                                        modelData.secondaryActivate(ix, iy);
+                                        modelData.secondaryActivate();
                                     } else {
-                                        modelData.activate(ix, iy);
+                                        modelData.activate();
                                     }
                                 }
                             }

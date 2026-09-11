@@ -4,6 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../Common" as Common
 import "." as Local
 
 BaseModule {
@@ -73,22 +74,15 @@ BaseModule {
         onTriggered: updateTemperature()
     }
     Timer {
-        id: gpuSlowTimer
-        interval: Math.max(intervalsConfig.gpu * 6, 30000)
+        id: gpuTimer
+        interval: root.showPopup ? intervalsConfig.gpu : Math.max(intervalsConfig.gpu * 6, 30000)
         repeat: true
         running: true
         onTriggered: updateGpu()
     }
     Timer {
-        id: gpuFastTimer
-        interval: intervalsConfig.gpu
-        repeat: true
-        running: root.showPopup
-        onTriggered: updateGpu()
-    }
-    Timer {
         id: topAppsTimer
-        interval: Math.min(intervalsConfig.cpu, intervalsConfig.memory)
+        interval: Math.max(5000, Math.min(intervalsConfig.cpu, intervalsConfig.memory) * 2)
         repeat: true
         running: root.showPopup
         onTriggered: updateTopApps()
@@ -99,6 +93,7 @@ BaseModule {
             updateTopApps();
             updateGpu();
         }
+        gpuTimer.restart();
     }
 
     Component.onCompleted: {
@@ -145,15 +140,9 @@ BaseModule {
         }
     }
     Process {
-        id: topCpuProcess
+        id: topAppsProcess
         stdout: StdioCollector {
-            onStreamFinished: parseTopCpuApps(text.trim())
-        }
-    }
-    Process {
-        id: topMemoryProcess
-        stdout: StdioCollector {
-            onStreamFinished: parseTopMemoryApps(text.trim())
+            onStreamFinished: parseTopApps(this.text.trim())
         }
     }
 
@@ -290,13 +279,18 @@ BaseModule {
         root.showPopup = false;
     }
 
-    Local.Popup {
-        module: root
-        barWindow: root.barWindow
-        colors: root.colors
-        fontsConfig: root.fontsConfig
-        popupsConfig: root.popupsConfig
-        overlayConfig: root.overlayConfig
+    Common.DeferredLoader {
+        open: root.showPopup
+        unloadDelay: root.overlayConfig ? root.overlayConfig.closeGraceMs + 20 : 250
+
+        Local.Popup {
+            module: root
+            barWindow: root.barWindow
+            colors: root.colors
+            fontsConfig: root.fontsConfig
+            popupsConfig: root.popupsConfig
+            overlayConfig: root.overlayConfig
+        }
     }
 
     PopupAnchor {
@@ -363,52 +357,9 @@ BaseModule {
         hasPrevData = true;
     }
 
-    function parseTopCpuApps(output) {
+    function parseTopApps(output) {
         if (!output) {
             topCpuApps = [];
-            return;
-        }
-        var excluded = {
-            "ps": true,
-            "sh": true,
-            "bash": true,
-            "head": true,
-            "sort": true,
-            "grep": true,
-            "awk": true
-        };
-        var totals = ({});
-        var lines = output.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (!line)
-                continue;
-            var parts = line.split(/\s+/);
-            if (parts.length < 2)
-                continue;
-            var usage = parseFloat(parts[parts.length - 1]);
-            if (isNaN(usage))
-                continue;
-            var name = parts.slice(0, parts.length - 1).join(" ");
-            if (excluded[name])
-                continue;
-            totals[name] = (totals[name] || 0) + usage;
-        }
-        var apps = [];
-        for (var appName in totals) {
-            apps.push({
-                name: appName,
-                usage: totals[appName]
-            });
-        }
-        apps.sort(function (a, b) {
-            return b.usage - a.usage;
-        });
-        topCpuApps = apps.slice(0, 5);
-    }
-
-    function parseTopMemoryApps(output) {
-        if (!output) {
             topMemoryApps = [];
             return;
         }
@@ -421,34 +372,46 @@ BaseModule {
             "grep": true,
             "awk": true
         };
-        var totals = ({});
+        var cpuTotals = ({});
+        var memoryTotals = ({});
         var lines = output.split('\n');
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
             if (!line)
                 continue;
             var parts = line.split(/\s+/);
-            if (parts.length < 2)
+            if (parts.length < 3)
                 continue;
+            var usage = parseFloat(parts[parts.length - 2]);
             var rssMb = parseFloat(parts[parts.length - 1]) / 1024;
-            if (isNaN(rssMb))
+            if (isNaN(usage) || isNaN(rssMb))
                 continue;
-            var name = parts.slice(0, parts.length - 1).join(" ");
+            var name = parts.slice(0, parts.length - 2).join(" ");
             if (excluded[name])
                 continue;
-            totals[name] = (totals[name] || 0) + rssMb;
+            cpuTotals[name] = (cpuTotals[name] || 0) + usage;
+            memoryTotals[name] = (memoryTotals[name] || 0) + rssMb;
         }
-        var apps = [];
-        for (var appName in totals) {
-            apps.push({
+        var cpuApps = [];
+        var memoryApps = [];
+        for (var appName in cpuTotals) {
+            cpuApps.push({
                 name: appName,
-                memoryMb: totals[appName]
+                usage: cpuTotals[appName]
+            });
+            memoryApps.push({
+                name: appName,
+                memoryMb: memoryTotals[appName]
             });
         }
-        apps.sort(function (a, b) {
+        cpuApps.sort(function (a, b) {
+            return b.usage - a.usage;
+        });
+        memoryApps.sort(function (a, b) {
             return b.memoryMb - a.memoryMb;
         });
-        topMemoryApps = apps.slice(0, 5);
+        topCpuApps = cpuApps.slice(0, 5);
+        topMemoryApps = memoryApps.slice(0, 5);
     }
 
     function parseGpuStats(output) {
@@ -782,11 +745,8 @@ BaseModule {
     }
 
     function updateTopApps() {
-        topCpuProcess.exec({
-            command: ["sh", "-c", "ps -eo comm:40,pcpu --sort=-pcpu --no-headers | head -n 6"]
-        });
-        topMemoryProcess.exec({
-            command: ["sh", "-c", "ps -eo comm:40,rss --sort=-rss --no-headers | head -n 6"]
+        topAppsProcess.exec({
+            command: ["ps", "-eo", "comm:40,pcpu,rss", "--no-headers"]
         });
     }
 

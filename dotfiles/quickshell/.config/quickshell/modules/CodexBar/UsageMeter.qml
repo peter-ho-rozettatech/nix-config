@@ -135,7 +135,7 @@ ColumnLayout {
             font.family: root.fontsConfig.defaultFamily
             font.pixelSize: root.fontsConfig.defaultSize - 2
             elide: Text.ElideRight
-            Layout.maximumWidth: root.width * 0.58
+            Layout.maximumWidth: 220
         }
     }
 }

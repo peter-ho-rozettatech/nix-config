@@ -76,6 +76,8 @@ in
       Description = "Quickshell";
       After = [ "graphical-session.target" ];
       PartOf = [ "graphical-session.target" ];
+      StartLimitIntervalSec = 120;
+      StartLimitBurst = 5;
     };
 
     Install = {
@@ -85,9 +87,11 @@ in
     Service = {
       ExecStart = "${
         inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default
-      }/bin/quickshell";
-      Restart = "always";
+      }/bin/quickshell --no-detailed-logs";
+      Restart = "on-failure";
       RestartSec = 5;
+      RestartSteps = 4;
+      RestartMaxDelaySec = 30;
     };
   };
 }

@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import "workspaceHelpers.js" as WorkspaceHelpers
@@ -227,9 +228,19 @@ Item {
     }
 
     Component.onCompleted: {
-        detectCompositorProcess.exec({
-            command: ["sh", "-lc", "env"]
-        });
+        const env = {
+            "NIRI_SOCKET": Quickshell.env("NIRI_SOCKET"),
+            "HYPRLAND_INSTANCE_SIGNATURE": Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")
+        };
+        root.compositorName = WorkspaceHelpers.detectCompositor(env);
+
+        if (!root.compositorName) {
+            root.logUnsupportedCompositor();
+            return;
+        }
+
+        root.refresh();
+        root.refreshActive();
     }
 
     Timer {
@@ -273,8 +284,7 @@ Item {
     }
 
     Connections {
-        target: Hyprland
-        enabled: root.compositorName === "hyprland"
+        target: root.compositorName === "hyprland" ? Hyprland : null
         function onRawEvent(event) {
             root.onHyprlandEvent();
         }
@@ -296,24 +306,6 @@ Item {
                 console.log("WorkspaceService: niri event-stream exited, restarting in " + nextInterval + "ms");
             niriStreamRestart.interval = nextInterval;
             niriStreamRestart.restart();
-        }
-    }
-
-    Process {
-        id: detectCompositorProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const env = WorkspaceHelpers.parseEnvironmentSnapshot(this.text.trim());
-                root.compositorName = WorkspaceHelpers.detectCompositor(env);
-
-                if (!root.compositorName) {
-                    root.logUnsupportedCompositor();
-                    return;
-                }
-
-                root.refresh();
-                root.refreshActive();
-            }
         }
     }
 

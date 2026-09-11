@@ -12,6 +12,7 @@ Item {
     // Queued step applied to the next fresh reading, so presses never use a stale base.
     property int pendingDelta: 0
     property bool pendingAdjust: false
+    property int maxBrightness: 0
 
     Component.onCompleted: {
         getBrightness();
@@ -27,10 +28,13 @@ Item {
                     if (isNaN(current)) {
                         root.flushPendingFallback();
                     } else {
-                        maxBrightnessProcess.exec({
-                            command: ["brightnessctl", "max"]
-                        });
                         brightnessProcess.currentValue = current;
+                        if (root.maxBrightness > 0)
+                            root.applyCurrentValue();
+                        else if (!maxBrightnessProcess.running)
+                            maxBrightnessProcess.exec({
+                                command: ["brightnessctl", "max"]
+                            });
                     }
                 } else {
                     root.flushPendingFallback();
@@ -48,21 +52,8 @@ Item {
                 if (maxOutput) {
                     var max = parseInt(maxOutput);
                     if (!isNaN(max) && max > 0) {
-                        var fresh = Math.round((brightnessProcess.currentValue / max) * 100);
-                        if (isNaN(fresh)) {
-                            root.flushPendingFallback();
-                        } else if (root.pendingAdjust) {
-                            var adjusted = Math.max(0, Math.min(100, fresh + root.pendingDelta));
-                            root.pendingAdjust = false;
-                            root.pendingDelta = 0;
-                            if (adjusted === fresh) {
-                                root.brightness = fresh;
-                            } else {
-                                root.setBrightness(adjusted);
-                            }
-                        } else {
-                            root.brightness = fresh;
-                        }
+                        root.maxBrightness = max;
+                        root.applyCurrentValue();
                     } else {
                         root.flushPendingFallback();
                     }
@@ -70,6 +61,28 @@ Item {
                     root.flushPendingFallback();
                 }
             }
+        }
+    }
+
+    function applyCurrentValue() {
+        if (root.maxBrightness <= 0) {
+            root.flushPendingFallback();
+            return;
+        }
+
+        var fresh = Math.round((brightnessProcess.currentValue / root.maxBrightness) * 100);
+        if (isNaN(fresh)) {
+            root.flushPendingFallback();
+        } else if (root.pendingAdjust) {
+            var adjusted = Math.max(0, Math.min(100, fresh + root.pendingDelta));
+            root.pendingAdjust = false;
+            root.pendingDelta = 0;
+            if (adjusted === fresh)
+                root.brightness = fresh;
+            else
+                root.setBrightness(adjusted);
+        } else {
+            root.brightness = fresh;
         }
     }
 

@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import ".."
+import "../../Common" as Common
 import "." as Local
 
 BaseModule {
@@ -79,13 +80,18 @@ BaseModule {
         root.showPopup = false;
     }
 
-    Local.Popup {
-        module: root
-        barWindow: root.barWindow
-        colors: root.colors
-        fontsConfig: root.fontsConfig
-        popupsConfig: root.popupsConfig
-        overlayConfig: root.overlayConfig
+    Common.DeferredLoader {
+        open: root.showPopup
+        unloadDelay: root.overlayConfig ? root.overlayConfig.closeGraceMs + 20 : 250
+
+        Local.Popup {
+            module: root
+            barWindow: root.barWindow
+            colors: root.colors
+            fontsConfig: root.fontsConfig
+            popupsConfig: root.popupsConfig
+            overlayConfig: root.overlayConfig
+        }
     }
 
     PopupAnchor {

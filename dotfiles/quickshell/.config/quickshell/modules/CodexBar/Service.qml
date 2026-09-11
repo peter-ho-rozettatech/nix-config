@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Io
+import "../Common" as Common
 import "codexbar.js" as CodexBar
 
 // Service — polls `codexbar usage` (every enabled provider in one call)
@@ -18,7 +19,7 @@ Item {
 
     // Normalized rows, one per provider/account segment (see codexbar.js).
     ListModel {
-        id: usageModel
+        id: usageRows
     }
 
     // Exhausted quota count + highest-usage source still below 100%.
@@ -65,10 +66,10 @@ Item {
         // parseProviders. (The all-providers call still EXECUTES first — only
         // the emission order groups Codex.)
         var script =
-            "OUT1=$(" + path + " usage --format json --pretty 2>/dev/null || true)\n"
+            "OUT1=$(" + path + " usage --format json 2>/dev/null || true)\n"
             + "if printf '%s' \"$OUT1\" | grep -qE '\"provider\"[[:space:]]*:[[:space:]]*\"codex\"'; then\n"
             + "  echo __CBCHUNK_codex__                       # emitted first -> Codex grouped at top\n"
-            + "  " + path + " usage --provider codex --all-accounts --format json --pretty 2>/dev/null || true\n"
+            + "  " + path + " usage --provider codex --all-accounts --format json 2>/dev/null || true\n"
             + "fi\n"
             + "echo __CBCHUNK_all__\n"
             + "printf '%s' \"$OUT1\"";
@@ -85,9 +86,9 @@ Item {
     }
 
     function applyParsed(parsed) {
-        usageModel.clear();
+        usageRows.clear();
         for (var i = 0; parsed.rows && i < parsed.rows.length; i++)
-            usageModel.append(parsed.rows[i]);
+            usageRows.append(parsed.rows[i]);
         root.barSummary = parsed.barSummary || null;
         // Latch configured on the first real row (see property comment above).
         if (!root.configured && parsed.rows) {
@@ -126,17 +127,22 @@ Item {
         root.refresh();
     }
 
-    Panel {
+    Common.DeferredLoader {
         open: root.panelOpen
-        usageModel: usageModel
-        busy: root.busy
-        lastUpdated: root.lastUpdated
-        refreshIntervalSec: codexbarConfig.refreshIntervalSec
-        topMargin: codexbarConfig.topMargin
-        colors: root.colors
-        fontsConfig: root.fontsConfig
-        overlayConfig: root.overlayConfig
-        onCloseRequested: root.hidePanel()
-        onRefreshRequested: root.refresh()
+        unloadDelay: root.overlayConfig ? root.overlayConfig.closeGraceMs + 20 : 250
+
+        Panel {
+            open: root.panelOpen
+            usageModel: usageRows
+            busy: root.busy
+            lastUpdated: root.lastUpdated
+            refreshIntervalSec: codexbarConfig.refreshIntervalSec
+            topMargin: codexbarConfig.topMargin
+            colors: root.colors
+            fontsConfig: root.fontsConfig
+            overlayConfig: root.overlayConfig
+            onCloseRequested: root.hidePanel()
+            onRefreshRequested: root.refresh()
+        }
     }
 }

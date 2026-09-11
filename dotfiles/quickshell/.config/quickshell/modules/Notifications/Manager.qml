@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Services.Notifications
 import Quickshell.Io
+import "../Common" as Common
 
 Item {
     id: root
@@ -227,20 +228,25 @@ Item {
         }
     }
 
-    Center {
+    Common.DeferredLoader {
         open: root.centerVisible
-        centerModel: root.persistentNotifications
-        colors: root.colors
-        fontsConfig: root.fontsConfig
-        notificationsConfig: root.notificationsConfig
-        overlayConfig: root.overlayConfig
-        onCloseRequested: root.hideCenter()
-        onClearRequested: root.clearAll()
-        onDismissRequested: function (entry) {
-            root.removeEntry(entry, true);
-        }
-        onActionRequested: function (entry, actionIdentifier) {
-            root.invokeAction(entry, actionIdentifier);
+        unloadDelay: root.overlayConfig ? root.overlayConfig.closeGraceMs + 20 : 250
+
+        Center {
+            open: root.centerVisible
+            centerModel: root.persistentNotifications
+            colors: root.colors
+            fontsConfig: root.fontsConfig
+            notificationsConfig: root.notificationsConfig
+            overlayConfig: root.overlayConfig
+            onCloseRequested: root.hideCenter()
+            onClearRequested: root.clearAll()
+            onDismissRequested: function (entry) {
+                root.removeEntry(entry, true);
+            }
+            onActionRequested: function (entry, actionIdentifier) {
+                root.invokeAction(entry, actionIdentifier);
+            }
         }
     }
 }

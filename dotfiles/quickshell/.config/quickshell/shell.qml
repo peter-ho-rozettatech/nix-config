@@ -72,13 +72,14 @@ ShellRoot {
                 notificationsManager: notifications
                 codexBarService: codexBarSvc
                 workspaceService: workspaceSvc
+                brightnessControl: brightnessSvc
             }
         }
     }
 
     // Control components
     OsdFeature.Brightness {
-        id: brightnessControl
+        id: brightnessSvc
         colors: config.colors
     }
 
@@ -91,7 +92,7 @@ ShellRoot {
     OsdFeature.ControlOSD {
         id: brightnessOsd
         title: "Brightness"
-        value: brightnessControl.brightness
+        value: brightnessSvc.brightness
         progressColor: config.colors.base0A
         colors: config.colors
         osdConfig: config.osd
@@ -111,17 +112,17 @@ ShellRoot {
     // Volume pushes state; brightness re-reads before stepping, so no polling is needed.
 
     function brightnessUp() {
-        brightnessControl.increase(config.steps.brightness);
+        brightnessSvc.increase(config.steps.brightness);
         brightnessOsd.show();
     }
 
     function brightnessDown() {
-        brightnessControl.decrease(config.steps.brightness);
+        brightnessSvc.decrease(config.steps.brightness);
         brightnessOsd.show();
     }
 
     function brightnessShow() {
-        brightnessControl.getBrightness();
+        brightnessSvc.getBrightness();
         brightnessOsd.show();
     }
 

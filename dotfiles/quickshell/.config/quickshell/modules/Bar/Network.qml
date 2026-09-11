@@ -13,10 +13,11 @@ BaseModule {
     property string essid: ""
     property real signalStrength: 0
     property string icon: "󰌙"
+    property var activeNetwork: null
 
-    // Signal-driven refresh with a 5s backstop poll; reads are spawn-free property lookups.
+    // Signals handle normal updates. This slow poll is only a missed-signal fallback.
     Timer {
-        interval: 5000
+        interval: 30000
         repeat: true
         running: true
         onTriggered: updateNetwork()
@@ -76,22 +77,20 @@ BaseModule {
                     root.requestRefresh();
                 }
             }
-            Instantiator {
-                model: modelData.networks
-                delegate: Connections {
-                    target: modelData
-                    ignoreUnknownSignals: true
-                    function onConnectedChanged() {
-                        root.requestRefresh();
-                    }
-                    function onStateChanged() {
-                        root.requestRefresh();
-                    }
-                    function onSignalStrengthChanged() {
-                        root.requestRefresh();
-                    }
-                }
-            }
+        }
+    }
+
+    Connections {
+        target: root.activeNetwork
+        ignoreUnknownSignals: true
+        function onConnectedChanged() {
+            root.requestRefresh();
+        }
+        function onStateChanged() {
+            root.requestRefresh();
+        }
+        function onSignalStrengthChanged() {
+            root.requestRefresh();
         }
     }
 
@@ -134,6 +133,8 @@ BaseModule {
             essid = "";
             signalStrength = 0;
         }
+        if (root.activeNetwork !== foundWifi)
+            root.activeNetwork = foundWifi;
         updateIcon();
     }
 

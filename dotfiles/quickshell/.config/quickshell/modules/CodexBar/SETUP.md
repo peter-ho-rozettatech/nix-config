@@ -92,7 +92,7 @@ meter without pacing details.
 
 Pacing and reset text update only when the widget polls; there is no local
 heartbeat between requests. The cadence is configured in `config.qml` through
-`codexbar.refreshIntervalSec` (currently 300 seconds).
+`codexbar.refreshIntervalSec` (currently 900 seconds).
 
 Bump the codexbar version later by changing `version` + the two hashes in
 `pkgs/codexbar/default.nix`; if a provider's JSON shape changed, re-capture it here and

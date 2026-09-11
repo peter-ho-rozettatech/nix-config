@@ -31,6 +31,7 @@ PanelWindow {
     required property var notificationsManager
     property var codexBarService
     property var workspaceService
+    property var brightnessControl
 
     Rectangle {
         anchors.fill: parent
@@ -231,6 +232,7 @@ PanelWindow {
                     intervalsConfig: root.intervalsConfig
                     thresholdsConfig: root.thresholdsConfig
                     fontsConfig: root.fontsConfig
+                    brightnessControl: root.brightnessControl
                 }
 
                 Audio {

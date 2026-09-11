@@ -2,56 +2,24 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
-import Quickshell.Io
 
 BaseModule {
     id: root
 
     hoverHighlight: true
-    property real brightness: 0
+    readonly property real brightness: brightnessControl ? brightnessControl.brightness : 0
     property string icon: "󰃞"
     property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject thresholdsConfig: parent.thresholdsConfig
+    property var brightnessControl
 
-    Process {
-        id: backlightWatchProcess
-        command: ["brightnessctl", "--watch"]
-        running: true
-
-        stdout: SplitParser {
-            onRead: data => parseBacklightInfo(data)
-        }
-    }
-
-    Component.onCompleted: updateBacklight()
-
-    Process {
-        id: backlightProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                parseBacklightInfo(this.text.trim());
-            }
-        }
-    }
-
-    function parseBacklightInfo(output) {
-        if (!output)
-            return;
-
-        var match = output.match(/(\d+)%/);
-        if (match) {
-            brightness = parseInt(match[1]);
-            updateIcon();
-        }
-    }
-
-    function updateBacklight() {
-        backlightProcess.exec({
-            command: ["brightnessctl", "info"]
-        });
-    }
+    Component.onCompleted: updateIcon()
+    onBrightnessChanged: updateIcon()
 
     function updateIcon() {
+        if (!thresholdsConfig || !thresholdsConfig.brightness)
+            return;
+
         var lowThreshold = thresholdsConfig.brightness.low;
         var mediumThreshold = thresholdsConfig.brightness.medium;
 

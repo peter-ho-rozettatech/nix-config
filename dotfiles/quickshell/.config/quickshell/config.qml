@@ -170,7 +170,9 @@ QtObject {
         // "codexbar" relies on PATH (home.packages). Set an absolute path if the
         // Quickshell systemd unit can't resolve it at runtime.
         readonly property string codexbarPath: "codexbar"
-        readonly property int refreshIntervalSec: 300
+        // A refresh starts two network-heavy Swift CLI queries. Keep the
+        // background cadence low; the panel still has a manual refresh action.
+        readonly property int refreshIntervalSec: 900
         // Drop the panel just below the bar so it never overlaps it (mirrors
         // notifications.topMargin). Single source of truth: tracks bar.height.
         readonly property int topMargin: bar.height + 12

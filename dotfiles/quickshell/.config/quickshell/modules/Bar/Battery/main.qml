@@ -4,6 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.UPower
 import ".."
+import "../../Common" as Common
 import "." as Local
 
 BaseModule {
@@ -41,7 +42,7 @@ BaseModule {
     property int refreshTick: 0
 
     Timer {
-        interval: 30000
+        interval: 300000
         repeat: true
         running: true
         onTriggered: root.refreshTick++
@@ -198,13 +199,18 @@ BaseModule {
         root.showPopup = false;
     }
 
-    Local.Popup {
-        module: root
-        barWindow: root.barWindow
-        colors: root.colors
-        fontsConfig: root.fontsConfig
-        popupsConfig: root.popupsConfig
-        overlayConfig: root.overlayConfig
+    Common.DeferredLoader {
+        open: root.showPopup
+        unloadDelay: root.overlayConfig ? root.overlayConfig.closeGraceMs + 20 : 250
+
+        Local.Popup {
+            module: root
+            barWindow: root.barWindow
+            colors: root.colors
+            fontsConfig: root.fontsConfig
+            popupsConfig: root.popupsConfig
+            overlayConfig: root.overlayConfig
+        }
     }
 
     PopupAnchor {
