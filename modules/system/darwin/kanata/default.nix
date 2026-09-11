@@ -67,12 +67,12 @@ in
       # sh
       ''
         echo "Restarting Karabiner DriverKit ..."
-        launchctl unload /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist 2> /dev/null || true
-        launchctl load /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist
+        launchctl bootout system /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist 2> /dev/null || true
+        launchctl bootstrap system /Library/LaunchDaemons/org.pqrs.karabiner.driverkit.plist
 
         echo "Restarting Kanata ..."
-        launchctl unload /Library/LaunchDaemons/local.jtroo.kanata.plist 2> /dev/null || true
-        launchctl load /Library/LaunchDaemons/local.jtroo.kanata.plist
+        launchctl bootout system /Library/LaunchDaemons/local.jtroo.kanata.plist 2> /dev/null || true
+        launchctl bootstrap system /Library/LaunchDaemons/local.jtroo.kanata.plist
       '';
 
     launchd.daemons = {
