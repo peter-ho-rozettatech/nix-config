@@ -108,21 +108,7 @@ ShellRoot {
         osdConfig: config.osd
     }
 
-    Component.onCompleted: {
-        // Set up periodic updates to sync with actual system state
-        updateTimer.start();
-    }
-
-    Timer {
-        id: updateTimer
-        interval: config.intervals.global
-        repeat: true
-        onTriggered: {
-            brightnessControl.getBrightness();
-            volumeControl.getVolume();
-            volumeControl.isMuted();
-        }
-    }
+    // Volume pushes state; brightness re-reads before stepping, so no polling is needed.
 
     function brightnessUp() {
         brightnessControl.increase(config.steps.brightness);

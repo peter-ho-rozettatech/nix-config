@@ -1,16 +1,19 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Quickshell
 import ".."
 import "." as Local
 
 BaseModule {
     id: root
     hoverHighlight: true
-    property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject popupsConfig: parent.popupsConfig
     property QtObject overlayConfig: parent.overlayConfig
     property var barWindow: null
+
+    // Minute-precision label without per-second wakeups.
+    text: Qt.formatDateTime(sysClock.date, "yyyy-MM-dd HH:mm")
 
     // Calendar popup state
     property bool showPopup: false
@@ -62,25 +65,10 @@ BaseModule {
         return cells;
     }
 
-    Timer {
-        id: clockTimer
-        interval: intervalsConfig.clock
-        repeat: true
-        running: true
-        onTriggered: updateTime()
-    }
-
-    Component.onCompleted: updateTime()
-
-    function updateTime() {
-        var now = new Date();
-        var year = now.getFullYear();
-        var month = String(now.getMonth() + 1).padStart(2, '0');
-        var day = String(now.getDate()).padStart(2, '0');
-        var hours = String(now.getHours()).padStart(2, '0');
-        var minutes = String(now.getMinutes()).padStart(2, '0');
-
-        text = year + "-" + month + "-" + day + " " + hours + ":" + minutes;
+    SystemClock {
+        id: sysClock
+        enabled: true
+        precision: SystemClock.Minutes
     }
 
     function popupX(popupWidth) {

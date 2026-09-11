@@ -1,76 +1,39 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Quickshell
-import Quickshell.Io
+import Quickshell.Services.Pipewire
 
 Item {
     id: root
-    property var volume: 0
-    property var muted: false
+    // Bindings over the default Pipewire sink; setters write straight back.
+    property PwNode sink: Pipewire.defaultAudioSink
+    property real volume: (sink && sink.audio) ? Math.round(sink.audio.volume * 100) : 0
+    property bool muted: (sink && sink.audio) ? sink.audio.muted : false
     property QtObject colors: null
 
-    Component.onCompleted: {
-        getVolume();
-        isMuted();
-    }
-
-    // Process for volume control
-    Process {
-        id: volumeProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var output = this.text.trim();
-                if (output) {
-                    var match = output.match(/Volume: (\d+\.?\d*)/);
-                    if (match) {
-                        volume = Math.round(parseFloat(match[1]) * 100);
-                    }
-                }
-            }
-        }
-    }
-
-    // Process for mute status
-    Process {
-        id: muteProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var output = this.text.trim();
-                if (output) {
-                    muted = output.includes("MUTED");
-                }
-            }
-        }
-    }
-
-    function getVolume() {
-        volumeProcess.exec({
-            command: ["wpctl", "get-volume", "@DEFAULT_SINK@"]
-        });
-        return volume;
+    PwObjectTracker {
+        objects: [Pipewire.defaultAudioSink]
     }
 
     function setVolume(value) {
+        if (!sink || !sink.audio)
+            return;
         var clampedValue = Math.max(0, Math.min(100, value));
-        volume = clampedValue;
-        Quickshell.execDetached({
-            command: ["wpctl", "set-volume", "@DEFAULT_SINK@", (clampedValue / 100).toString()]
-        });
+        sink.audio.volume = clampedValue / 100;
     }
 
     function toggleMute() {
-        muted = !muted;
-        Quickshell.execDetached({
-            command: ["wpctl", "set-mute", "@DEFAULT_SINK@", "toggle"]
-        });
+        if (!sink || !sink.audio)
+            return;
+        sink.audio.muted = !sink.audio.muted;
     }
 
     function isMuted() {
-        muteProcess.exec({
-            command: ["wpctl", "get-volume", "@DEFAULT_SINK@"]
-        });
         return muted;
+    }
+
+    function getVolume() {
+        return volume;
     }
 
     function increase(step) {

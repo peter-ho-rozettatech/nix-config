@@ -54,10 +54,11 @@ QtObject {
     }
 
     // Workspaces configuration
+    // NOTE: slow fallbacks only; live updates are event-driven (see WorkspaceService.qml).
     readonly property QtObject workspaces: QtObject {
         readonly property int spacing: 4
-        readonly property int updateInterval: 200
-        readonly property int activeUpdateInterval: 100
+        readonly property int updateInterval: 5000
+        readonly property int activeUpdateInterval: 2000
         readonly property int baseWidth: 30
         readonly property int iconWidth: 16
         readonly property int iconPadding: 12
@@ -85,19 +86,12 @@ QtObject {
         readonly property int hideInterval: 2000
     }
 
-    // Update intervals
+    // Update intervals (consumed keys only).
     readonly property QtObject intervals: QtObject {
-        readonly property int global: 5000
-        readonly property int clock: 1000
         readonly property int cpu: 2000
         readonly property int memory: 3000
         readonly property int gpu: 5000
         readonly property int temperature: 5000
-        readonly property int backlight: 3000
-        readonly property int volume: 2000
-        readonly property int battery: 5000
-        readonly property int network: 5000
-        readonly property int tray: 10000
     }
 
     // Thresholds

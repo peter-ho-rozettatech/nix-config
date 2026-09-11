@@ -55,13 +55,16 @@ BaseModule {
         interval: intervalsConfig.cpu
         repeat: true
         running: true
-        onTriggered: updateCpu()
+        onTriggered: {
+            statView.reload();
+            loadView.reload();
+        }
     }
     Timer {
         interval: intervalsConfig.memory
         repeat: true
         running: true
-        onTriggered: updateMemoryUsage()
+        onTriggered: memView.reload()
     }
     Timer {
         interval: intervalsConfig.temperature
@@ -70,72 +73,63 @@ BaseModule {
         onTriggered: updateTemperature()
     }
     Timer {
-        interval: intervalsConfig.gpu
+        id: gpuSlowTimer
+        interval: Math.max(intervalsConfig.gpu * 6, 30000)
         repeat: true
         running: true
         onTriggered: updateGpu()
     }
+    Timer {
+        id: gpuFastTimer
+        interval: intervalsConfig.gpu
+        repeat: true
+        running: root.showPopup
+        onTriggered: updateGpu()
+    }
+    Timer {
+        id: topAppsTimer
+        interval: Math.min(intervalsConfig.cpu, intervalsConfig.memory)
+        repeat: true
+        running: root.showPopup
+        onTriggered: updateTopApps()
+    }
+
+    onShowPopupChanged: {
+        if (root.showPopup) {
+            updateTopApps();
+            updateGpu();
+        }
+    }
 
     Component.onCompleted: {
-        updateCpu();
-        updateMemoryUsage();
+        statView.reload();
+        loadView.reload();
+        memView.reload();
         findTempPath();
         updateGpu();
         popupAnchor.updatePosition();
     }
 
-    Process {
-        id: cpuProcess
-        stdout: StdioCollector {
-            onStreamFinished: parseCpuStats(text.trim())
-        }
+    FileView {
+        id: statView
+        path: "/proc/stat"
+        watchChanges: false
+        printErrors: false
+        onLoaded: parseCpuStats(text())
     }
-    Process {
-        id: loadProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var parts = text.trim().split(/\s+/);
-                if (parts.length >= 3)
-                    loadAvg = parts.slice(0, 3).join(" ");
-                if (parts.length >= 5)
-                    processCount = parts[3];
-            }
-        }
+    FileView {
+        id: loadView
+        path: "/proc/loadavg"
+        watchChanges: false
+        printErrors: false
+        onLoaded: parseLoadAvg(text())
     }
-    Process {
-        id: topCpuProcess
-        stdout: StdioCollector {
-            onStreamFinished: parseTopCpuApps(text.trim())
-        }
-    }
-
-    Process {
-        id: memoryProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var output = text.trim();
-                if (!output)
-                    return;
-                var lines = output.split('\n');
-                for (var i = 0; i < lines.length; i++) {
-                    var parts = lines[i].split(/\s+/);
-                    if (lines[i].startsWith('Mem:') && parts.length >= 7) {
-                        totalMemory = parseFloat(parts[1]) / 1024;
-                        usedMemory = parseFloat(parts[2]) / 1024;
-                        availableMemory = parseFloat(parts[6]) / 1024;
-                    } else if (lines[i].startsWith('Swap:') && parts.length >= 3) {
-                        swapTotal = parseFloat(parts[1]) / 1024;
-                        swapUsed = parseFloat(parts[2]) / 1024;
-                    }
-                }
-            }
-        }
-    }
-    Process {
-        id: topMemoryProcess
-        stdout: StdioCollector {
-            onStreamFinished: parseTopMemoryApps(text.trim())
-        }
+    FileView {
+        id: memView
+        path: "/proc/meminfo"
+        watchChanges: false
+        printErrors: false
+        onLoaded: parseMeminfo(text())
     }
 
     Process {
@@ -151,16 +145,67 @@ BaseModule {
         }
     }
     Process {
-        id: tempProcess
+        id: topCpuProcess
         stdout: StdioCollector {
-            onStreamFinished: {
-                var output = text.trim();
-                if (output) {
-                    var temp = parseInt(output);
-                    temperature = temp / 1000;
-                    isCritical = temperature >= thresholdsConfig.temperature.critical;
-                }
-            }
+            onStreamFinished: parseTopCpuApps(text.trim())
+        }
+    }
+    Process {
+        id: topMemoryProcess
+        stdout: StdioCollector {
+            onStreamFinished: parseTopMemoryApps(text.trim())
+        }
+    }
+
+    FileView {
+        id: tempView
+        path: root.tempPath.length > 0 ? root.tempPath : "/dev/null"
+        watchChanges: false
+        printErrors: false
+        onLoaded: parseTemp(text())
+    }
+
+    function parseLoadAvg(output) {
+        var parts = output.trim().split(/\s+/);
+        if (parts.length >= 3)
+            loadAvg = parts.slice(0, 3).join(" ");
+        if (parts.length >= 5)
+            processCount = parts[3];
+    }
+
+    function parseMeminfo(output) {
+        if (!output)
+            return;
+        var memTotalKb = 0, memAvailKb = 0, swapTotalKb = 0, swapFreeKb = 0;
+        var lines = output.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+            var m = lines[i].match(/^(\w+):\s+(\d+)/);
+            if (!m)
+                continue;
+            if (m[1] === "MemTotal")
+                memTotalKb = parseInt(m[2]);
+            else if (m[1] === "MemAvailable")
+                memAvailKb = parseInt(m[2]);
+            else if (m[1] === "SwapTotal")
+                swapTotalKb = parseInt(m[2]);
+            else if (m[1] === "SwapFree")
+                swapFreeKb = parseInt(m[2]);
+        }
+        if (memTotalKb > 0) {
+            totalMemory = memTotalKb / 1048576;
+            availableMemory = memAvailKb / 1048576;
+            usedMemory = (memTotalKb - memAvailKb) / 1048576;
+        }
+        swapTotal = swapTotalKb / 1048576;
+        swapUsed = (swapTotalKb - swapFreeKb) / 1048576;
+    }
+
+    function parseTemp(output) {
+        output = output.trim();
+        if (output) {
+            var temp = parseInt(output);
+            temperature = temp / 1000;
+            isCritical = temperature >= thresholdsConfig.temperature.critical;
         }
     }
 
@@ -213,6 +258,8 @@ BaseModule {
     }
 
     function resolveGpuAppNames() {
+        if (!root.showPopup)
+            return;
         var pids = [];
         for (var i = 0; i < gpuApps.length; i++) {
             var p = gpuApps[i].pid;
@@ -321,9 +368,18 @@ BaseModule {
             topCpuApps = [];
             return;
         }
-        var apps = [];
+        var excluded = {
+            "ps": true,
+            "sh": true,
+            "bash": true,
+            "head": true,
+            "sort": true,
+            "grep": true,
+            "awk": true
+        };
+        var totals = ({});
         var lines = output.split('\n');
-        for (var i = 0; i < lines.length && apps.length < 5; i++) {
+        for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
             if (!line)
                 continue;
@@ -333,12 +389,22 @@ BaseModule {
             var usage = parseFloat(parts[parts.length - 1]);
             if (isNaN(usage))
                 continue;
+            var name = parts.slice(0, parts.length - 1).join(" ");
+            if (excluded[name])
+                continue;
+            totals[name] = (totals[name] || 0) + usage;
+        }
+        var apps = [];
+        for (var appName in totals) {
             apps.push({
-                name: parts.slice(0, parts.length - 1).join(" "),
-                usage: usage
+                name: appName,
+                usage: totals[appName]
             });
         }
-        topCpuApps = apps;
+        apps.sort(function (a, b) {
+            return b.usage - a.usage;
+        });
+        topCpuApps = apps.slice(0, 5);
     }
 
     function parseTopMemoryApps(output) {
@@ -346,9 +412,18 @@ BaseModule {
             topMemoryApps = [];
             return;
         }
-        var apps = [];
+        var excluded = {
+            "ps": true,
+            "sh": true,
+            "bash": true,
+            "head": true,
+            "sort": true,
+            "grep": true,
+            "awk": true
+        };
+        var totals = ({});
         var lines = output.split('\n');
-        for (var i = 0; i < lines.length && apps.length < 5; i++) {
+        for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
             if (!line)
                 continue;
@@ -358,12 +433,22 @@ BaseModule {
             var rssMb = parseFloat(parts[parts.length - 1]) / 1024;
             if (isNaN(rssMb))
                 continue;
+            var name = parts.slice(0, parts.length - 1).join(" ");
+            if (excluded[name])
+                continue;
+            totals[name] = (totals[name] || 0) + rssMb;
+        }
+        var apps = [];
+        for (var appName in totals) {
             apps.push({
-                name: parts.slice(0, parts.length - 1).join(" "),
-                memoryMb: rssMb
+                name: appName,
+                memoryMb: totals[appName]
             });
         }
-        topMemoryApps = apps;
+        apps.sort(function (a, b) {
+            return b.memoryMb - a.memoryMb;
+        });
+        topMemoryApps = apps.slice(0, 5);
     }
 
     function parseGpuStats(output) {
@@ -696,38 +781,24 @@ BaseModule {
         });
     }
 
-    function updateCpu() {
-        cpuProcess.exec({
-            command: ["sh", "-c", "grep '^cpu' /proc/stat"]
-        });
-        loadProcess.exec({
-            command: ["cat", "/proc/loadavg"]
-        });
+    function updateTopApps() {
         topCpuProcess.exec({
-            command: ["sh", "-c", "ps -eo pid=,pcpu= | while read pid cpu; do exe=$(readlink \"/proc/$pid/exe\" 2>/dev/null) || continue; name=${exe##*/}; name=${name#.}; [ -z \"$name\" ] && continue; case \"$name\" in ps|sh|bash|readlink|awk|sort|head|grep|cat) continue;; esac; echo \"$name\t$cpu\"; done | awk -F'\t' '{ u[$1]+=$2 } END { for (n in u) printf \"%s\\t%.1f\\n\", n, u[n] }' | sort -t '\t' -k2,2nr | head -n 5"]
-        });
-    }
-
-    function updateMemoryUsage() {
-        memoryProcess.exec({
-            command: ["free", "-m"]
+            command: ["sh", "-c", "ps -eo comm:40,pcpu --sort=-pcpu --no-headers | head -n 6"]
         });
         topMemoryProcess.exec({
-            command: ["sh", "-c", "ps -eo pid=,rss= | while read pid rss; do exe=$(readlink \"/proc/$pid/exe\" 2>/dev/null) || continue; name=${exe##*/}; name=${name#.}; [ -z \"$name\" ] && continue; case \"$name\" in ps|sh|bash|readlink|awk|sort|head|grep|cat) continue;; esac; echo \"$name\t$rss\"; done | awk -F'\t' '{ u[$1]+=$2 } END { for (n in u) printf \"%s\\t%.0f\\n\", n, u[n] }' | sort -t '\t' -k2,2nr | head -n 5"]
+            command: ["sh", "-c", "ps -eo comm:40,rss --sort=-rss --no-headers | head -n 6"]
         });
     }
 
     function updateTemperature() {
         if (tempPath)
-            tempProcess.exec({
-                command: ["cat", tempPath]
-            });
+            tempView.reload();
         else
             findTempPath();
     }
 
     function updateGpu() {
-        var intelCmd = "intel_gpu_top -J -s 1000 -n 1 -o - 2>&1; ";
+        var intelCmd = "intel_gpu_top -J -s 200 -n 1 -o - 2>&1; ";
         intelCmd += "printf '\\n--temp--\\n'; for hwmon in /sys/class/hwmon/hwmon*; do name=$(cat \"$hwmon/name\" 2>/dev/null); if [ \"$name\" = i915 ] && [ -f \"$hwmon/temp1_input\" ]; then awk '{ printf \"%.0f\", $1 / 1000 }' \"$hwmon/temp1_input\"; break; fi; done";
         var nvidiaCmd = "nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu,name --format=csv,noheader,nounits 2>/dev/null; ";
         nvidiaCmd += "printf '\\n--apps--\\n'; nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader,nounits 2>/dev/null || true";

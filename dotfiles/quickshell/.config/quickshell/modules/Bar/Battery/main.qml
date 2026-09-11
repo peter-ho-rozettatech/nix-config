@@ -2,278 +2,148 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
-import Quickshell.Io
+import Quickshell.Services.UPower
 import ".."
 import "." as Local
 
 BaseModule {
     id: root
 
-    property var batteries: []
-    property bool hasBattery: false
-    property bool hasWarning: false
-    property bool hasCritical: false
-    property string batteryText: "󰁺 --%"
+    // batteries re-evaluates on UPower signals; refreshTick is a missed-signal safety net.
+    readonly property var batteries: buildBatteries()
+    readonly property bool hasBattery: batteries.length > 0
+    readonly property bool hasWarning: batteries.some(function (b) {
+        return b.isWarning;
+    })
+    readonly property bool hasCritical: batteries.some(function (b) {
+        return b.isCritical;
+    })
+    readonly property string batteryText: {
+        if (!batteries || batteries.length === 0)
+            return "󰁺 --%";
+        var parts = [];
+        for (var i = 0; i < batteries.length; i++)
+            parts.push(batteries[i].icon + " " + batteries[i].percentage + "%");
+        return parts.join(" | ");
+    }
+
     property bool showPopup: false
     readonly property real globalX: popupAnchor.globalX
     property var barWindow: null
     property bool inOverflow: false
     property var overflowAnchorModule: null
-    property QtObject intervalsConfig: parent.intervalsConfig
     property QtObject thresholdsConfig: parent.thresholdsConfig
     property QtObject popupsConfig: parent.popupsConfig
     property QtObject overlayConfig: parent.overlayConfig
 
     hoverHighlight: true
 
+    property int refreshTick: 0
+
     Timer {
-        interval: intervalsConfig.battery
+        interval: 30000
         repeat: true
         running: true
-        onTriggered: updateBattery()
+        onTriggered: root.refreshTick++
     }
 
-    Component.onCompleted: {
-        updateBattery();
-        popupAnchor.updatePosition();
-    }
+    Component.onCompleted: popupAnchor.updatePosition()
 
-    Process {
-        id: batteryListProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var output = this.text.trim();
-                if (output) {
-                    var lines = output.split('\n');
-                    var batteryDevices = [];
-                    for (var i = 0; i < lines.length; i++) {
-                        var line = lines[i].trim();
-                        if (line.indexOf('battery_') !== -1) {
-                            batteryDevices.push(line);
-                        }
-                    }
-                    fetchBatteryData(batteryDevices);
-                }
-            }
+    function stateString(s) {
+        var t = "";
+        try {
+            t = UPowerDeviceState.toString(s);
+        } catch (e) {
+            t = "";
         }
+        // toString yields "Pending Charge" style labels — compare spaceless.
+        var k = String(t).toLowerCase().replace(/ /g, "");
+        if (k === "charging")
+            return "charging";
+        if (k === "discharging")
+            return "discharging";
+        if (k === "fullycharged")
+            return "fully-charged";
+        if (k === "pendingcharge")
+            return "pending-charge";
+        if (k === "pendingdischarge")
+            return "pending-discharge";
+        if (k === "empty")
+            return "empty";
+        return "unknown";
     }
 
-    Process {
-        id: batteryProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var output = this.text.trim();
-                if (output) {
-                    parseBatteryInfo(output);
-                }
-            }
+    function formatSeconds(s) {
+        if (!s || s <= 0)
+            return "";
+        var h = Math.floor(s / 3600);
+        var m = Math.round((s % 3600) / 60);
+        if (m === 60) {
+            h += 1;
+            m = 0;
         }
+        if (h > 0)
+            return h + "h " + m + "m";
+        return m + " min";
     }
 
-    property var batteryDataQueue: []
-    property var batteryDevices: []
-    property int currentBatteryIndex: 0
+    function buildBatteries() {
+        // Register refreshTick as a binding dependency.
+        root.refreshTick;
+        var devs = (UPower.devices && UPower.devices.values) ? UPower.devices.values : [];
+        var out = [];
+        var idx = 0;
+        for (var i = 0; i < devs.length; i++) {
+            var d = devs[i];
+            if (!d || (d.type !== UPowerDeviceType.Battery && !d.isLaptopBattery))                continue;
+            if (d.isPresent === false)
+                continue;
 
-    function updateBattery() {
-        batteryListProcess.exec({
-            command: ["upower", "-e"]
-        });
-    }
-
-    function fetchBatteryData(devices) {
-        batteryDevices = devices;
-        batteryDataQueue = [];
-        currentBatteryIndex = 0;
-        hasBattery = devices.length > 0;
-
-        if (devices.length === 0) {
-            batteries = [];
-            return;
-        }
-
-        fetchNextBattery();
-    }
-
-    function fetchNextBattery() {
-        if (currentBatteryIndex >= batteryDevices.length) {
-            aggregateBatteryData();
-            return;
-        }
-
-        batteryProcess.exec({
-            command: ["upower", "-i", batteryDevices[currentBatteryIndex]]
-        });
-    }
-
-    function parseBatteryInfo(output) {
-        var lines = output.split('\n');
-        var batteryData = {
-            nativePath: "",
-            vendor: "",
-            model: "",
-            serial: "",
-            percentage: 0,
-            state: 'unknown',
-            energy: 0,
-            energyFull: 0,
-            energyFullDesign: 0,
-            energyRate: 0,
-            voltage: 0,
-            capacity: 0,
-            chargeCycles: "",
-            technology: "",
-            capacityLevel: "",
-            voltageMinDesign: 0,
-            chargeStartThreshold: "",
-            chargeEndThreshold: "",
-            chargeThresholdSupported: "",
-            updated: "",
-            powerSupply: "",
-            present: "",
-            rechargeable: "",
-            timeToEmpty: "",
-            timeToFull: ""
-        };
-
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (line.startsWith('percentage:')) {
-                var match = line.match(/(\d+)%/);
-                if (match) {
-                    batteryData.percentage = parseInt(match[1]);
-                }
-            } else if (line.startsWith('state:')) {
-                batteryData.state = line.split(':')[1].trim();
-            } else if (line.startsWith('energy:') && !line.includes('energy-empty') && !line.includes('energy-full')) {
-                var energyMatch = line.match(/([\d.]+)\s*Wh/);
-                if (energyMatch) {
-                    batteryData.energy = parseFloat(energyMatch[1]);
-                }
-            } else if (line.startsWith('energy-full-design:')) {
-                var designMatch = line.match(/([\d.]+)\s*Wh/);
-                if (designMatch) {
-                    batteryData.energyFullDesign = parseFloat(designMatch[1]);
-                }
-            } else if (line.startsWith('energy-full:')) {
-                var energyFullMatch = line.match(/([\d.]+)\s*Wh/);
-                if (energyFullMatch) {
-                    batteryData.energyFull = parseFloat(energyFullMatch[1]);
-                }
-            } else if (line.startsWith('native-path:')) {
-                batteryData.nativePath = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('vendor:')) {
-                batteryData.vendor = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('model:')) {
-                batteryData.model = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('serial:')) {
-                batteryData.serial = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('energy-rate:')) {
-                var rateMatch = line.match(/([\d.]+)\s*W/);
-                if (rateMatch) {
-                    batteryData.energyRate = parseFloat(rateMatch[1]);
-                }
-            } else if (line.startsWith('voltage:')) {
-                var voltageMatch = line.match(/([\d.]+)\s*V/);
-                if (voltageMatch) {
-                    batteryData.voltage = parseFloat(voltageMatch[1]);
-                }
-            } else if (line.startsWith('capacity:')) {
-                var capacityMatch = line.match(/([\d.]+)%/);
-                if (capacityMatch) {
-                    batteryData.capacity = parseFloat(capacityMatch[1]);
-                }
-            } else if (line.startsWith('time to empty:')) {
-                batteryData.timeToEmpty = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('time to full:')) {
-                batteryData.timeToFull = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('charge-cycles:')) {
-                batteryData.chargeCycles = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('technology:')) {
-                batteryData.technology = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('capacity-level:')) {
-                batteryData.capacityLevel = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('voltage-min-design:')) {
-                var minVoltageMatch = line.match(/([\d.]+)\s*V/);
-                if (minVoltageMatch) {
-                    batteryData.voltageMinDesign = parseFloat(minVoltageMatch[1]);
-                }
-            } else if (line.startsWith('charge-start-threshold:')) {
-                batteryData.chargeStartThreshold = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('charge-end-threshold:')) {
-                batteryData.chargeEndThreshold = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('charge-threshold-supported:')) {
-                batteryData.chargeThresholdSupported = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('updated:')) {
-                batteryData.updated = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('power supply:')) {
-                batteryData.powerSupply = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('present:')) {
-                batteryData.present = line.split(':').slice(1).join(':').trim();
-            } else if (line.startsWith('rechargeable:')) {
-                batteryData.rechargeable = line.split(':').slice(1).join(':').trim();
-            }
-        }
-
-        batteryDataQueue.push(batteryData);
-        currentBatteryIndex++;
-        fetchNextBattery();
-    }
-
-    function aggregateBatteryData() {
-        if (batteryDataQueue.length === 0)
-            return;
-
-        var updatedBatteries = [];
-        hasWarning = false;
-        hasCritical = false;
-
-        for (var i = 0; i < batteryDataQueue.length; i++) {
-            var batteryData = batteryDataQueue[i];
-
+            // Quickshell reports 0-1 fractions, not 0-100 like the upower CLI.
+            var rawPct = Number(d.percentage) || 0;
+            var pct = rawPct <= 1 ? Math.round(rawPct * 100) : Math.round(rawPct);
+            var rawHealth = Number(d.healthPercentage) || 0;
+            var health = rawHealth <= 1 && rawHealth > 0 ? rawHealth * 100 : rawHealth;
+            var st = stateString(d.state);
+            var isCharging = st === "charging";
+            var isPlugged = st === "charging" || st === "fully-charged" || st === "pending-charge";
             var battery = {
-                nativePath: batteryData.nativePath,
-                vendor: batteryData.vendor,
-                model: batteryData.model,
-                serial: batteryData.serial,
-                percentage: batteryData.percentage,
-                state: batteryData.state,
-                energy: batteryData.energy,
-                energyFull: batteryData.energyFull,
-                energyFullDesign: batteryData.energyFullDesign,
-                energyRate: batteryData.energyRate,
-                voltage: batteryData.voltage,
-                capacity: batteryData.capacity,
-                chargeCycles: batteryData.chargeCycles,
-                technology: batteryData.technology,
-                capacityLevel: batteryData.capacityLevel,
-                voltageMinDesign: batteryData.voltageMinDesign,
-                chargeStartThreshold: batteryData.chargeStartThreshold,
-                chargeEndThreshold: batteryData.chargeEndThreshold,
-                chargeThresholdSupported: batteryData.chargeThresholdSupported,
-                updated: batteryData.updated,
-                powerSupply: batteryData.powerSupply,
-                present: batteryData.present,
-                rechargeable: batteryData.rechargeable,
-                timeToEmpty: batteryData.timeToEmpty,
-                timeToFull: batteryData.timeToFull,
-                isCharging: batteryData.state === 'charging',
-                isPlugged: batteryData.state === 'charging' || batteryData.state === 'fully-charged' || batteryData.state === 'pending-charge',
-                icon: getBatteryIcon(batteryData.percentage, batteryData.state),
-                index: i
+                nativePath: d.nativePath || "",
+                vendor: "",
+                model: d.model || "",
+                serial: "",
+                percentage: pct,
+                state: st,
+                energy: d.energy || 0,
+                energyFull: 0,
+                energyFullDesign: d.energyCapacity || 0,
+                energyRate: Math.abs(d.changeRate || 0),
+                voltage: 0,
+                capacity: d.healthSupported ? health : 0,
+                chargeCycles: "",
+                technology: "",
+                capacityLevel: "",
+                voltageMinDesign: 0,
+                chargeStartThreshold: "",
+                chargeEndThreshold: "",
+                chargeThresholdSupported: "",
+                updated: "",
+                powerSupply: d.powerSupply ? "yes" : "no",
+                present: "yes",
+                rechargeable: "",
+                timeToEmpty: formatSeconds(d.timeToEmpty),
+                timeToFull: formatSeconds(d.timeToFull),
+                isCharging: isCharging,
+                isPlugged: isPlugged,
+                icon: getBatteryIcon(pct, st),
+                index: idx
             };
-
-            battery.isWarning = battery.percentage <= thresholdsConfig.battery.warning && !battery.isCharging;
-            battery.isCritical = battery.percentage <= thresholdsConfig.battery.critical && !battery.isCharging;
-
-            if (battery.isWarning)
-                hasWarning = true;
-            if (battery.isCritical)
-                hasCritical = true;
-
-            updatedBatteries.push(battery);
+            battery.isWarning = pct <= thresholdsConfig.battery.warning && !isCharging;
+            battery.isCritical = pct <= thresholdsConfig.battery.critical && !isCharging;
+            out.push(battery);
+            idx++;
         }
-        batteries = updatedBatteries;
-        updateBatteryText();
+        return out;
     }
 
     function addDetailRow(rows, label, value, suffix) {
@@ -288,59 +158,32 @@ BaseModule {
     function detailRows(battery) {
         var rows = [];
         addDetailRow(rows, "Native path", battery.nativePath, "");
-        addDetailRow(rows, "Vendor", battery.vendor, "");
         addDetailRow(rows, "Model", battery.model, "");
-        addDetailRow(rows, "Serial", battery.serial, "");
+        addDetailRow(rows, "State", battery.state, "");
         addDetailRow(rows, "Energy", battery.energy ? battery.energy.toFixed(2) : 0, " Wh");
-        addDetailRow(rows, "Full", battery.energyFull ? battery.energyFull.toFixed(2) : 0, " Wh");
         addDetailRow(rows, "Design", battery.energyFullDesign ? battery.energyFullDesign.toFixed(2) : 0, " Wh");
         addDetailRow(rows, "Rate", battery.energyRate ? battery.energyRate.toFixed(2) : 0, " W");
-        addDetailRow(rows, "Voltage", battery.voltage ? battery.voltage.toFixed(2) : 0, " V");
-        addDetailRow(rows, "Capacity", battery.capacity ? battery.capacity.toFixed(1) : 0, "%");
-        addDetailRow(rows, "Capacity level", battery.capacityLevel, "");
-        addDetailRow(rows, "Cycles", battery.chargeCycles, "");
-        addDetailRow(rows, "Technology", battery.technology, "");
-        addDetailRow(rows, "Min design voltage", battery.voltageMinDesign ? battery.voltageMinDesign.toFixed(2) : 0, " V");
-        addDetailRow(rows, "Charge start", battery.chargeStartThreshold, "");
-        addDetailRow(rows, "Charge end", battery.chargeEndThreshold, "");
-        addDetailRow(rows, "Threshold support", battery.chargeThresholdSupported, "");
-        addDetailRow(rows, "Updated", battery.updated, "");
+        addDetailRow(rows, "Health", battery.capacity ? battery.capacity.toFixed(1) : 0, "%");
         addDetailRow(rows, "Power supply", battery.powerSupply, "");
         addDetailRow(rows, "Present", battery.present, "");
-        addDetailRow(rows, "Rechargeable", battery.rechargeable, "");
         addDetailRow(rows, "Time to empty", battery.timeToEmpty, "");
         addDetailRow(rows, "Time to full", battery.timeToFull, "");
         return rows;
     }
 
-    function updateBatteryText() {
-        if (!batteries || batteries.length === 0) {
-            batteryText = "󰁺 --%";
-            return;
-        }
-
-        var parts = [];
-        for (var i = 0; i < batteries.length; i++) {
-            var battery = batteries[i];
-            var text = battery.icon + " " + battery.percentage + "%";
-            parts.push(text);
-        }
-        batteryText = parts.join(" | ");
-    }
-
     function getBatteryIcon(percentage, state) {
+        var icons = ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"];
         var iconIndex = Math.floor((percentage / 100) * 10);
         if (iconIndex < 0)
             iconIndex = 0;
-        if (iconIndex > 10)
-            iconIndex = 10;
+        if (iconIndex > icons.length - 1)
+            iconIndex = icons.length - 1;
 
-        var icons = ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"];
         var icon = icons[iconIndex];
 
-        if (state === 'charging') {
+        if (state === "charging") {
             icon = "󰂄";
-        } else if (state === 'fully-charged' || state === 'pending-charge') {
+        } else if (state === "fully-charged" || state === "pending-charge") {
             icon = "󰚥";
         }
 
