@@ -106,7 +106,6 @@ PanelWindow {
                 barWindow: root
                 colors: root.colors
                 moduleConfig: root.moduleConfig
-                intervalsConfig: root.intervalsConfig
                 fontsConfig: root.fontsConfig
                 popupsConfig: root.popupsConfig
                 overlayConfig: root.overlayConfig
@@ -255,7 +254,6 @@ PanelWindow {
                     overflowAnchorModule: tray
                     colors: root.colors
                     moduleConfig: root.moduleConfig
-                    intervalsConfig: root.intervalsConfig
                     thresholdsConfig: root.thresholdsConfig
                     fontsConfig: root.fontsConfig
                     popupsConfig: root.popupsConfig
@@ -281,7 +279,6 @@ PanelWindow {
                     height: parent.height
                     colors: root.colors
                     moduleConfig: root.moduleConfig
-                    intervalsConfig: root.intervalsConfig
                     fontsConfig: root.fontsConfig
                 }
 
